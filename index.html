@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>🐄 VacaBox</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e2b63f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="VacaBox">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand" id="brand">🐄 VacaBox</div>
+  <div class="navwrap"><button id="navL" class="navarrow hidden" aria-label="Rolar para a esquerda">‹</button><nav class="nav" id="nav"></nav><button id="navR" class="navarrow hidden" aria-label="Rolar para a direita">›</button></div>
+  <div class="coins">🪙 <span id="coins">1000</span></div>
+</header>
+
+<main class="container">
+  <div id="pageHome" class="page">
+    <section class="hero">
+      <div><h1>Abra caixas e encontre vacas raras!</h1><p class="farmline">🏡 Fazenda: <b id="farmNm"></b> <button class="secondary" data-a="fname" style="padding:4px 10px;font-size:12px">✏️ Dar nome</button></p><p>As vacas vão direto para a sua fazenda. Ordenhe, venda leite, procrie, evolua e funda!</p></div>
+      <div class="stats"><div><b id="uniqueCount">0</b><span>Descobertas</span></div><div><b id="totalCount">0</b><span>Vacas</span></div></div>
+    </section>
+    <section class="boxes" id="boxes"></section>
+    <section class="section"><h2>Livro de pelagens</h2><div id="bookTabs" class="tabs"></div><div id="collection" class="collection"></div></section>
+  </div>
+  <div id="pageFarm" class="page hidden"><div id="farm"></div></div>
+  <div id="pageShop" class="page hidden"><div id="shop"></div></div>
+  <div id="pageEvent" class="page hidden"><div id="event"></div></div>
+  <div id="pageAuction" class="page hidden"><div id="auction"></div></div>
+  <div id="pageMore" class="page hidden"><div id="more"></div></div>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-card"><button id="closeX" class="xbtn hidden" title="Fechar">✕</button>
+    <div id="openingStage">
+      <div class="modal-title">Abrindo caixa...</div>
+      <div class="case-wrap" id="caseWrap"><div class="case-icon">📦</div><div class="case-shadow"></div></div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <div id="progressText">0%</div>
+    </div>
+    <div id="resultStage" class="hidden">
+      <div id="newTag" class="newtag hidden">🎉 NOVA PELAGEM NO LIVRO! 🎉</div><div class="modal-title">Vaca encontrada!</div>
+      <div id="cowResult"></div><div id="resultName"></div><div id="resultRarity"></div>
+      <button id="continueBtn" class="primary">Ir para o rebanho</button>
+    </div>
+  </div>
+</div>
+
+<div id="chart" class="modal hidden"><div class="modal-card wide"><button class="xbtn" onclick="chartOn=false;closeChart()">✕</button><div id="chartBody"></div></div></div>
+<div id="pick" class="modal hidden"><div class="modal-card wide"><button class="xbtn" onclick="closePick()">✕</button><div id="pickBody"></div></div></div>
+<div id="dev" class="modal hidden"><div class="modal-card"><button class="xbtn" onclick="closeDev()">✕</button><div id="devBody"></div></div></div>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+<script src="auction-engine.js"></script>
+<script src="extras.js"></script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))</script>
+</body>
+</html>
