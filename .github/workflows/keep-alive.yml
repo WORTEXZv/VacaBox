@@ -1,0 +1,16 @@
+name: VacaBox Keep Alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Manter servidor ativo
+        run: |
+          curl -f https://vacabox.onrender.com/api/ping
