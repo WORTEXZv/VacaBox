@@ -1,0 +1,50 @@
+COMO COLOCAR O VACABOX ONLINE DE GRAÇA (contas, ranking, leilão e trocas com pessoas reais)
+==========================================================================================
+Resumo: o jogo precisa de um "servidor" Node (o arquivo server.js, já pronto). A opção gratuita mais
+simples hoje é o Render. Os planos gratuitos mudam com frequência: confira as regras no site antes.
+
+PASSO A PASSO COM O RENDER (render.com)
+ 1) GitHub: crie uma conta em github.com e um repositório novo. Descompacte o VacaBox-v9.zip e envie TODOS
+    os arquivos para a raiz do repositório ("Add file" → "Upload files").
+ 2) Render: entre em render.com com a conta do GitHub → "New +" → "Web Service" → escolha o repositório.
+ 3) Preencha: Runtime/Language: Node · Build Command: npm install · Start Command: node server.js · Instance Type: Free.
+ 4) Crie o serviço e espere o deploy. O endereço será algo como  https://vacabox.onrender.com
+ 5) Abra o endereço. Em Mais → Perfil deve aparecer "🌐 online" e os botões "Entrar" e "Criar conta".
+
+PARA OS JOGADORES NÃO PERDEREM NADA (IMPORTANTE)
+ O plano grátis do Render NÃO guarda arquivos de forma permanente: quando o servidor reinicia ou você publica uma
+ atualização, as contas e os saves da nuvem podem ser apagados. Resolva com um Redis gratuito do Upstash:
+   a) Crie conta em upstash.com → "Create Database" (Redis) → copie "REST URL" e "REST TOKEN".
+   b) No Render: seu serviço → Environment → adicione as variáveis
+        UPSTASH_REDIS_REST_URL   e   UPSTASH_REDIS_REST_TOKEN
+      com esses valores → salve (o serviço reinicia).
+   c) Pronto: contas, ranking, trocas e os saves de cada jogador passam a ficar no Upstash e sobrevivem a
+      reinícios e atualizações do jogo. Confira no site do Upstash os limites do plano gratuito.
+ Além disso, o progresso de cada jogador também fica salvo no aparelho dele, e o jogo faz cópia de segurança local.
+ Peça aos jogadores para usarem Mais → Perfil → "Exportar backup" de vez em quando.
+
+COMO FUNCIONAM AS CONTAS
+ - Nome de usuário (3 a 20 letras minúsculas, números ou _) e senha (6 ou mais caracteres). A senha é guardada
+   embaralhada (scrypt), nunca em texto puro. Use sempre o endereço com https://.
+ - Quem já jogava sem conta não perde nada: ao criar/entrar, o progresso do aparelho é enviado para a conta
+   (ou o jogador escolhe qual progresso usar, se a conta já tinha um).
+ - Se dois aparelhos jogarem ao mesmo tempo, vale o último que salvou.
+
+MANTER O SERVIDOR ACORDADO
+ O plano grátis "dorme" após ~15 minutos sem acessos e demora cerca de 30 a 60 segundos para acordar. Para evitar,
+ crie uma conta grátis no UptimeRobot e monitore  https://SEU-APP.onrender.com/api/ping  a cada 5 minutos.
+
+ATUALIZAR O JOGO DEPOIS
+ Troque os arquivos no GitHub (o Render publica sozinho). Com o Upstash configurado, ninguém perde progresso.
+ O jogo converte saves antigos automaticamente para o formato novo.
+
+OUTRAS OPÇÕES
+ - Oracle Cloud "Always Free": máquina virtual sempre ligada (pede cartão para verificar a conta; mais trabalhosa:
+   instale o Node e rode  node server.js  — o disco dela é permanente, então os saves ficam na pasta saves/).
+ - Railway: crédito mensal pequeno. Glitch e Heroku não têm mais plano gratuito para isso.
+
+TESTAR NO PRÓPRIO COMPUTADOR
+ Instale o Node (nodejs.org), abra um terminal na pasta do jogo, rode  node server.js  e abra  http://localhost:3000
+
+VARIÁVEIS OPCIONAIS DO SERVIDOR
+ PORT, HOUSE_BOT=0 (desliga o bot "Casa 🤖" do leilão), UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN.

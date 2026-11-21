@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>🐄 VacaBox</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e2b63f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="VacaBox">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand" id="brand">🐄 VacaBox</div>
+  <div class="navwrap"><button id="navL" class="navarrow hidden" aria-label="Rolar para a esquerda">‹</button><nav class="nav" id="nav"></nav><button id="navR" class="navarrow hidden" aria-label="Rolar para a direita">›</button></div>
+  <div class="coins">🪙 <span id="coins">1000</span></div>
+</header>
+
+<main class="container">
+  <div id="pageHome" class="page">
+    <section class="hero">
+      <div><h1>Abra caixas e encontre vacas raras!</h1><p class="farmline">🏡 Fazenda: <b id="farmNm"></b> <button class="secondary" data-a="fname" style="padding:4px 10px;font-size:12px">✏️ Dar nome</button></p><p>As vacas vão direto para a sua fazenda. Ordenhe, venda leite, procrie, evolua e funda!</p></div>
+      <div class="stats"><div><b id="uniqueCount">0</b><span>Descobertas</span></div><div><b id="totalCount">0</b><span>Vacas</span></div></div>
+    </section>
+    <section class="boxes" id="boxes"></section>
+    
+  </div>
+  <div id="pageFarm" class="page hidden"><div id="farm"></div></div>
+  <div id="pageComp" class="page hidden"><div id="comp"></div></div>
+  <div id="pageShop" class="page hidden"><div id="shop"></div></div>
+  <div id="pageEvent" class="page hidden"><div id="event"></div></div>
+  <div id="pageAuction" class="page hidden"><div id="auction"></div></div>
+  <div id="pageMore" class="page hidden"><div id="more"></div></div>
+</main>
+<footer class="foot">VacaBox © Todos os Direitos Reservados</footer>
+
+<div id="toast" class="toast hidden"></div>
+<div id="ann" class="ann hidden"></div>
+<input type="file" id="bkFile" accept=".json,application/json" class="hidden">
+<div id="breedModal" class="modal hidden"><div class="modal-card wide"><button class="xbtn" onclick="closeBreed()">✕</button><div id="breedBody"></div></div></div>
+<div id="acct" class="modal hidden"><div class="modal-card"><button class="xbtn" onclick="closeAcct()">✕</button><div class="modal-title" id="acctTitle">Entrar</div>
+ <input id="aUser" class="codein" placeholder="Nome de usuário" autocomplete="username" maxlength="20"><input id="aPass" type="password" class="codein" placeholder="Senha (6 ou mais caracteres)" autocomplete="current-password" maxlength="100">
+ <p class="dsc" id="acctMsg" style="color:#ffb3a8;min-height:24px"></p><button class="primary big" id="acctGo" onclick="doAuth()">Entrar</button></div></div>
+<div id="nameModal" class="modal hidden"><div class="modal-card"><button class="xbtn" id="nameX" onclick="document.getElementById('nameModal').classList.add('hidden')">✕</button><div class="modal-title">🏡 Dê um nome à sua fazenda</div>
+ <p class="dsc">Esse nome aparece no ranking e nos leilões.</p><input id="nameIn" class="codein" placeholder="Ex.: Fazenda Boa Vista" maxlength="24"><p class="dsc" id="nameMsg" style="color:#ffb3a8;min-height:24px"></p><button class="primary big" onclick="saveName()">Começar!</button></div></div>
+<div id="sync" class="modal hidden"><div class="modal-card wide"><div id="syncBody"></div></div></div>
+<div id="news" class="modal hidden"><div class="modal-card newscard"><button class="xbtn" onclick="closeNews()">✕</button><h2 style="margin:0 0 6px;color:#fff">🎉 Novidades da versão 9</h2><ul id="newsList"></ul><button class="yellowbtn" onclick="closeNews()">Obrigado!</button></div></div>
+<div id="boot"><svg class="bootlogo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="VacaBox"><circle cx="100" cy="100" r="96" fill="#f2c94c" stroke="#3a2d28" stroke-width="4"/>
+<ellipse cx="32" cy="76" rx="28" ry="16" transform="rotate(-22 32 76)" fill="#fff" stroke="#3a2d28" stroke-width="3"/><ellipse cx="34" cy="77" rx="15" ry="8" transform="rotate(-22 34 77)" fill="#f3b0ab"/>
+<ellipse cx="168" cy="76" rx="28" ry="16" transform="rotate(22 168 76)" fill="#fff" stroke="#3a2d28" stroke-width="3"/><ellipse cx="166" cy="77" rx="15" ry="8" transform="rotate(22 166 77)" fill="#f3b0ab"/>
+<path d="M64 48 Q48 18 76 18 Q66 30 78 46Z" fill="#f6ead0" stroke="#3a2d28" stroke-width="3" stroke-linejoin="round"/><path d="M136 48 Q152 18 124 18 Q134 30 122 46Z" fill="#f6ead0" stroke="#3a2d28" stroke-width="3" stroke-linejoin="round"/>
+<path d="M58 54 Q58 36 100 34 Q142 36 142 54 L152 110 Q158 164 118 172 L82 172 Q42 164 48 110Z" fill="#fff" stroke="#3a2d28" stroke-width="3.5" stroke-linejoin="round"/>
+<ellipse cx="70" cy="88" rx="24" ry="27" fill="#2c2623"/><ellipse cx="136" cy="52" rx="15" ry="13" fill="#2c2623"/><path d="M84 40 Q100 18 116 40 Q100 31 84 40Z" fill="#2c2623"/>
+<ellipse cx="76" cy="92" rx="12" ry="14" fill="#fff" stroke="#3a2d28" stroke-width="2.5"/><ellipse cx="124" cy="92" rx="12" ry="14" fill="#fff" stroke="#3a2d28" stroke-width="2.5"/>
+<circle cx="78" cy="94" r="7" fill="#1b1512"/><circle cx="122" cy="94" r="7" fill="#1b1512"/><circle cx="81" cy="90" r="2.6" fill="#fff"/><circle cx="125" cy="90" r="2.6" fill="#fff"/>
+<circle cx="62" cy="120" r="8" fill="#ff8fa0" opacity=".35"/><circle cx="138" cy="120" r="8" fill="#ff8fa0" opacity=".35"/>
+<ellipse cx="100" cy="142" rx="40" ry="28" fill="#f2b0a6" stroke="#3a2d28" stroke-width="3"/><ellipse cx="85" cy="138" rx="5.5" ry="8" fill="#7a3d3d"/><ellipse cx="115" cy="138" rx="5.5" ry="8" fill="#7a3d3d"/><path d="M82 156 Q100 168 118 156" stroke="#7a3d3d" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg><h1>VacaBox</h1><div class="bootbar"><i></i></div><small>VacaBox © Todos os Direitos Reservados</small></div>
+
+
+<div id="modal" class="modal hidden">
+  <div class="modal-card"><button id="closeX" class="xbtn hidden" title="Fechar">✕</button>
+    <div id="openingStage">
+      <div class="modal-title">Abrindo caixa...</div>
+      <div class="case-wrap" id="caseWrap"><div class="case-icon">📦</div><div class="case-shadow"></div></div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <div id="progressText">0%</div>
+    </div>
+    <div id="resultStage" class="hidden">
+      <div id="newTag" class="newtag hidden">🎉 NOVA PELAGEM NO LIVRO! 🎉</div><div class="modal-title">Vaca encontrada!</div>
+      <div id="cowResult"></div><div id="resultName"></div><div id="resultRarity"></div>
+      <button id="continueBtn" class="primary">Ir para o rebanho</button>
+    </div>
+  </div>
+</div>
+
+<div id="chart" class="modal hidden"><div class="modal-card wide"><button class="xbtn" onclick="chartOn=false;closeChart()">✕</button><div id="chartBody"></div></div></div>
+<div id="pick" class="modal hidden"><div class="modal-card wide"><button class="xbtn" onclick="closePick()">✕</button><div id="pickBody"></div></div></div>
+<div id="dev" class="modal hidden"><div class="modal-card"><button class="xbtn" onclick="closeDev()">✕</button><div id="devBody"></div></div></div>
+
+<script src="config.js"></script>
+<script src="script.js"></script>
+<script src="auction-engine.js"></script>
+<script src="extras.js"></script>
+<script src="v9.js"></script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))</script>
+</body>
+</html>
