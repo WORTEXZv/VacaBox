@@ -45,6 +45,7 @@ const EVENTS=[
 {id:"pascoa",n:"Páscoa",e:"🐰",h:330,k:"d",f:325,t:410,cows:["Coelhinha","Chocolatuda","Ovo de Páscoa"],d:"Ovos de chocolate escondidos pela fazenda!"},
 {id:"virada",n:"Virada de Ano",e:"🎆",h:48,k:"d",f:1230,t:110,cows:["Confete","Champanhe","Fogos"],d:"Fogos no céu e um ano novo de leite pela frente!"}];
 const EXP=[0,0,50,35,8,6,1];
+const EXPS=[0,0,72,25.5,2,.45,.05];
 const SEH=[110,50,25,200],EXW=[70,25,5];
 const PAL={s0:[["#b9f0a0","#e86fb0"],["#ffd0e8","#7ac96b"],["#cfe8ff","#f5c542"]],s1:[["#ffd44e","#ff7a2a"],["#7ad7f0","#fff3a0"],["#ff9f5a","#2a8ca0"]],s2:[["#d9822b","#6b3a14"],["#b5532f","#f2c94c"],["#8a5a2b","#e8b04a"]],s3:[["#e8f4ff","#7aa6e8"],["#cfe0ef","#3a5a8a"],["#ffffff","#9fc5e8"]],
 alien:[["#9be86b","#2f6b2a"],["#b8f0ff","#5b3fa8"],["#2b2d5c","#7dffb0"]],vulcao:[["#d9482b","#2b1a17"],["#ffb347","#8a1c0e"],["#3a3331","#ff6a1a"]],louca:[["#ff6fd8","#5d1b8f"],["#fff35c","#e0328a"],["#6ee7ff","#ff7a2f"]],
@@ -139,7 +140,8 @@ const TR=[[3.00,2.60],[2.60,1.30],[1.30,3.00],[3.00,3.75]];
 const trendAt=s=>{const t=s*SLOT_MS+1,[a,b]=TR[SEI(t)];return a+(b-a)*((t%SEASON_MS)/SEASON_MS)};
 function price(s){const n=.08*Math.sin(s*.9+1)+.05*Math.sin(s*2.3)+(rnd(s*1.7)-.5)*.12;return Math.max(1.1,Math.min(4.2,Math.round((trendAt(s)+n)*100)/100))}
 const ready=c=>Date.now()-c.m>=cdMs()&&Date.now()>=(c.rest||0),evoReady=c=>type(c).r<6&&Date.now()-c.at>=EVO;
-const pen=r=>r>=5?.5:1,evoChance=c=>Math.min(95,Math.round((30+2*state.up.pasto+2*state.rb)*pen(type(c).r))),fuseChance=r=>Math.min(90,Math.round((35+2*state.up.pasto+2*state.rb)*pen(r))),dungTotal=()=>Math.round(state.dung*DUNG*(1+.05*state.rb));
+const EVB=[70,55,40,28,15,5],EVC=[95,90,80,65,45,25];
+const pen=r=>r>=5?.5:1,evoChance=c=>{const r=type(c).r;return Math.min(EVC[r],Math.round(EVB[r]+2*state.up.pasto+2*state.rb))},fuseChance=r=>Math.min(90,Math.round((35+2*state.up.pasto+2*state.rb)*pen(r))),dungTotal=()=>Math.round(state.dung*DUNG*(1+.05*state.rb));
 const sellValue=c=>Math.round(SELL[type(c).r]*(.85+rnd(c.u%100000)*.3)*(1+.05*state.rb));
 const clock=ms=>{ms=Math.max(0,Math.ceil(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),s=ms%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")};
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.remove("hidden");clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.add("hidden"),2800)}
@@ -198,7 +200,7 @@ function showPage(p){
   $("#page"+(p.startsWith("ev:")?"Event":PG[p])).classList.remove("hidden");render();scrollTo(0,0);
 }
 function allBoxes(){return [...BOXES,seasonBox(),...activeEvents().map(eventBox)]}
-const seasonBox=()=>{const s=SEI(Date.now());return{id:"s"+s,name:"Caixa de "+SEASONS[s].n,price:800,emoji:SEASONS[s].i,ex:"s"+s,p:EXP,desc:"Vacas exclusivas da estação! Só saem aqui."}};
+const seasonBox=()=>{const s=SEI(Date.now());return{id:"s"+s,name:"Caixa de "+SEASONS[s].n,price:800,emoji:SEASONS[s].i,ex:"s"+s,p:EXPS,desc:"Vacas exclusivas da estação! Só saem aqui."}};
 const eventBox=e=>({id:"ev_"+e.id,name:"Caixa "+e.n,price:1500,emoji:e.e,ex:e.id,p:EXP,desc:"Vacas exclusivas do evento! Só saem aqui."});
 function boxCard(b){return `<article class="box ${b.id==="arco"?"rb":""} ${b.ex?"exb":""}"><div class="box-emoji">${b.emoji}</div><h3>${b.name}</h3><p>${b.desc}</p>
   ${b.ex?`<small>⭐ ${COWS.filter(c=>c.ex===b.ex&&state.seen.includes(c.id)).length}/${COWS.filter(c=>c.ex===b.ex).length} vacas exclusivas descobertas</small>`:""}<div class="price">🪙 ${fmt(b.price)}</div>

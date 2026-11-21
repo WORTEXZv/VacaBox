@@ -60,7 +60,7 @@ BOXES.forEach(b=>{b.p=BP[b.id]});
 function pickByP(box){const p=box.p||EXP,pool=box.ex?COWS.filter(c=>c.ex===box.ex):REG;let x=Math.random()*p.reduce((a,b)=>a+b,0),r=0;
   for(let i=0;i<p.length;i++){if(p[i]>0&&(x-=p[i])<=0){r=i;break}}
   let l=pool.filter(c=>c.r===r);if(!l.length)l=pool;return l[Math.floor(Math.random()*l.length)]}
-const chips=p=>p.map((x,i)=>x?`<span class="badge ${RC[i]} bigchip">${RN[i]} <b>${x}%</b></span>`:"").join("");
+const chips=p=>p.map((x,i)=>x?`<span class="badge ${RC[i]} bigchip">${RN[i]} <b>${fmt(x)}%</b></span>`:"").join("");
 function boxCard(b){return `<article class="box ${b.id==="arco"?"rb":""} ${b.ex?"exb":""}"><div class="box-emoji">${b.emoji}</div><h3>${b.name}</h3><div class="chips">${chips(b.p||EXP)}</div>
   ${b.ex?`<p class="dsc sm">⭐ ${COWS.filter(c=>c.ex===b.ex&&state.seen.includes(c.id)).length}/${COWS.filter(c=>c.ex===b.ex).length} vacas exclusivas descobertas</p>`:""}<div class="price">🪙 ${fmt(b.price)}</div>
   <button class="primary" onclick="openCase('${b.id}')" ${openingBusy||(state.coins<b.price&&!state.dev.free)||full()?"disabled":""}>${full()?"Fazenda cheia":"Abrir caixa"}</button></article>`}
@@ -367,8 +367,8 @@ function perfHTML(){
   <div class="panel"><h3>🏆 Meus troféus (${state.trophies.length})</h3>${state.trophies.length?`<div class="trophies">${state.trophies.slice().reverse().map(trophyCard).join("")}</div>`:`<p class="dsc sm">Fique no top 3 do ranking semanal para ganhar troféus exclusivos.</p>`}</div>
   <p class="dsc sm">Modo: ${ONLINE?"🌐 online":"📴 offline"}</p>`}
 /* novidades */
-const NEWS_V="9.2";
-const NEWS=["🐛 <b>Corrigido:</b> ao escolher o tempo do contrato (5, 15 ou 30 min), o menu de desenvolvedor aparecia. Isso não acontece mais.","🥇 <b>Ranking semanal:</b> agora é uma aba ao lado da Loja e reinicia a cada 7 dias.","🏆 <b>Troféus:</b> o top 1, 2 e 3 da semana ganham um troféu exclusivo de ouro, prata ou bronze, com a semana e o nome da fazenda.","✨ O nome do top 1 brilha em <b>ouro</b>, o do top 2 em <b>prata</b> e o do top 3 em <b>bronze</b>.","⏳ Uma barra no topo mostra quanto tempo falta para a semana acabar."];
+const NEWS_V="9.4";
+const NEWS=["🧬 <b>Evolução mais difícil nas vacas raras:</b> quanto mais rara é a vaca, menor a chance de ela evoluir.","Comum → Incomum <b>70%</b> · Incomum → Rara <b>55%</b> · Rara → Épica <b>40%</b>","Épica → Lendária <b>28%</b> · Lendária → Mítica <b>15%</b> · Mítica → Única <b>5%</b>","🌿 O <b>Pasto melhorado</b> e os <b>renascimentos</b> continuam aumentando essas chances (com um limite máximo por raridade)."];
 function showNews(){$("#newsTitle").textContent="🎉 Novidades da versão "+NEWS_V;$("#newsList").innerHTML=NEWS.map(x=>`<li>${x}</li>`).join("");$("#news").classList.remove("hidden")}
 function closeNews(){$("#news").classList.add("hidden");try{localStorage.setItem("vb_news",NEWS_V)}catch(e){}}
 
