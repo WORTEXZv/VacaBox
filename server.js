@@ -6,7 +6,7 @@ const http=require("http"),fs=require("fs"),path=require("path"),crypto=require(
 const PORT=+process.env.PORT||3000,BOT=process.env.HOUSE_BOT!=="0",DEBUG=process.env.DEBUG==="1",DATA=path.join(__dirname,"data.json");
 const UR=process.env.UPSTASH_REDIS_REST_URL,UT=process.env.UPSTASH_REDIS_REST_TOKEN;
 let skew=0;const now=()=>Date.now()+skew;
-let D={players:{},trades:{},results:{},accounts:{},sessions:{}};try{D={...D,...JSON.parse(fs.readFileSync(DATA,"utf8"))}}catch(e){}
+let D={players:{},trades:{},results:{},accounts:{},sessions:{},awards:[],weeksTop:{},fin:null};try{D={...D,...JSON.parse(fs.readFileSync(DATA,"utf8"))}}catch(e){}
 async function loadRemote(){if(!UR)return;try{const r=await fetch(UR+"/get/vacabox",{headers:{Authorization:"Bearer "+UT}}),j=await r.json();if(j.result)D={...D,...JSON.parse(j.result)};console.log("dados carregados do Redis")}catch(e){console.log("falha ao ler Redis:",e.message)}}
 async function saveRemote(){if(!UR)return;try{await fetch(UR,{method:"POST",headers:{Authorization:"Bearer "+UT},body:JSON.stringify(["SET","vacabox",JSON.stringify(D)])})}catch(e){}}
 const saveD=()=>{fs.writeFile(DATA,JSON.stringify(D),()=>{});saveRemote()};setInterval(saveD,30000);
@@ -20,6 +20,14 @@ async function loadBlob(u){let g=CACHE[u]||null;if(!g&&UR){try{const r=await fet
   if(!g){try{g=fs.readFileSync(path.join(SAVES,u+".json"),"utf8")}catch(e){return null}}
   try{return g.startsWith("gz:")?zlib.gunzipSync(Buffer.from(g.slice(3),"base64")).toString():g}catch(e){return null}}
 const cleanName=n=>String(n||"Fazenda").replace(/[<>&"]/g,"").slice(0,24)||"Fazenda",okPid=p=>/^[a-z0-9]{6,40}$/.test(String(p||""));
+const WEEK0=Date.UTC(2026,10,16,3),WEEK_MS=7*864e5,weekIdx=t=>Math.floor((t-WEEK0)/WEEK_MS);
+function finalizeWeeks(){
+  const cur=weekIdx(now());if(D.fin==null)D.fin=cur-1;if(D.fin>=cur-1)return;
+  for(let w=D.fin+1;w<=cur-1;w++){
+    const top=Object.entries(D.players).filter(([id,p])=>p.w===w&&p.s>0).sort((a,b)=>b[1].s-a[1].s).slice(0,3);
+    D.weeksTop[w]=top.map(([id,p],i)=>({n:p.n,s:p.s,place:i+1}));
+    top.forEach(([id,p],i)=>D.awards.push({week:w,place:i+1,pid:id,name:p.n,score:p.s,claimed:false}));D.fin=w}
+  D.awards=D.awards.filter(a=>!a.claimed||cur-a.week<8);for(const k of Object.keys(D.weeksTop))if(cur-k>10)delete D.weeksTop[k];saveD()}
 let AU=null;
 function settle(){
   if(!AU||!AU.over||AU.settled)return;AU.settled=true;
@@ -27,7 +35,7 @@ function settle(){
   for(const k of Object.keys(D.results))if(now()-D.results[k].t>6*3600000)delete D.results[k];
 }
 function step(){
-  const t=now(),k=Math.floor(t/AE.SLOT);
+  finalizeWeeks();const t=now(),k=Math.floor(t/AE.SLOT);
   if(!AU||AU.key!==k){settle();AU=AE.create(k);if(BOT)AE.addBot(AU,"bot1","Casa 🤖",k)}
   AE.step(AU,t);settle();
 }
@@ -67,9 +75,14 @@ http.createServer((req,res)=>{
       if(p==="/api/account/load"){const ss=D.sessions[u.searchParams.get("token")];if(!ss)return J(res,401,{error:"sessao"});const a=D.accounts[ss.u];
         if(u.searchParams.get("only")==="ts")return J(res,200,{ts:a.ts||0});const raw=await loadBlob(ss.u);return J(res,200,{save:raw?JSON.parse(raw):null,ts:a.ts||0})}
       if(!okPid(pid))return J(res,400,{error:"pid"});
-      if(p==="/api/score"&&req.method==="POST"){const s=Math.max(0,Math.min(1e15,+b.score||0)),o=D.players[pid]||{s:0};D.players[pid]={n:cleanName(b.name),s:Math.max(o.s,s),t:now()};return J(res,200,{ok:1})}
-      if(p==="/api/ranking"){const all=Object.entries(D.players).map(([id,x])=>({id,n:x.n,s:x.s})).sort((a,c)=>c.s-a.s),top=all.slice(0,50).map(x=>({n:x.n,s:x.s,me:x.id===pid})),i=all.findIndex(x=>x.id===pid);
-        if(i>=50)top.push({n:all[i].n,s:all[i].s,me:true});return J(res,200,{top,rank:i<0?all.length+1:i+1,total:all.length})}
+      if(p==="/api/score"&&req.method==="POST"){const wk=weekIdx(now());if(+b.week!==wk)return J(res,200,{ok:0,week:wk});
+        const sc=Math.max(0,Math.min(1e15,+b.score||0)),o=D.players[pid];D.players[pid]={n:cleanName(b.name),s:o&&o.w===wk?Math.max(o.s,sc):sc,w:wk,t:now()};return J(res,200,{ok:1,week:wk})}
+      if(p==="/api/ranking"){finalizeWeeks();const wk=weekIdx(now()),all=Object.entries(D.players).filter(([id,x])=>x.w===wk).map(([id,x])=>({id,n:x.n,s:x.s})).sort((a,c)=>c.s-a.s),
+        top=all.slice(0,50).map((x,i)=>({n:x.n,s:x.s,me:x.id===pid,rank:i+1})),i=all.findIndex(x=>x.id===pid);
+        if(i>=50)top.push({n:all[i].n,s:all[i].s,me:true,rank:i+1});
+        return J(res,200,{week:wk,ends:WEEK0+(wk+1)*WEEK_MS,top,rank:i<0?all.length+1:i+1,total:all.length,last:D.weeksTop[wk-1]?{week:wk-1,top:D.weeksTop[wk-1]}:null})}
+      if(p==="/api/trophies"){finalizeWeeks();return J(res,200,{awards:D.awards.filter(a=>a.pid===pid&&!a.claimed)})}
+      if(p==="/api/trophy/claim"&&req.method==="POST"){const a=D.awards.find(x=>x.pid===pid&&x.week===+b.week&&!x.claimed);if(a){a.claimed=true;saveD()}return J(res,200,{ok:1})}
       if(p==="/api/auction"&&req.method==="GET")return J(res,200,pub(pid));
       if(p==="/api/auction/join"){step();AE.join(AU,pid,cleanName(b.name));return J(res,200,pub(pid))}
       if(p==="/api/auction/bid"){step();AE.doBid(AU,pid,+b.p,now());step();return J(res,200,pub(pid))}

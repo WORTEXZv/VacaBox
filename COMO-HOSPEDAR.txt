@@ -48,3 +48,14 @@ TESTAR NO PRÓPRIO COMPUTADOR
 
 VARIÁVEIS OPCIONAIS DO SERVIDOR
  PORT, HOUSE_BOT=0 (desliga o bot "Casa 🤖" do leilão), UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN.
+
+USAR O GITHUB PAGES PARA O JOGO E O RENDER PARA O SERVIDOR
+ O GitHub Pages só guarda arquivos (sites estáticos): ele NÃO executa o server.js. Por isso, aberto só pelo Pages,
+ o jogo funciona offline (sem contas, ranking, leilão e trocas reais). Para ligar os dois:
+ 1) Publique o servidor no Render (passos acima) e copie o endereço, ex.: https://vacabox.onrender.com
+ 2) No repositório do Pages, edite o arquivo config.js e deixe assim (com o SEU endereço, sem "/" no final):
+        window.VB_CONFIG={server:"https://vacabox.onrender.com"};
+ 3) Salve (commit), espere ~1 minuto o Pages publicar e abra o jogo com Ctrl+F5 (ou limpe o cache).
+ 4) Em Mais → Perfil deve aparecer "🌐 online". Se o Render estiver dormindo, o jogo tenta de novo sozinho
+    por alguns minutos e avisa "Conectado ao servidor!".
+ Mais simples: use só o endereço do Render, que já serve o jogo e o servidor juntos.

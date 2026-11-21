@@ -1,5 +1,9 @@
 /* ===== VacaBox v9 (sobrescreve funções antigas) ===== */
 const VER=9;
+const WEEK0=Date.UTC(2026,10,16,3),WEEK_MS=7*864e5,weekIdx=(t=Date.now())=>Math.floor((t-WEEK0)/WEEK_MS);
+const esc=s=>String(s).replace(/[<>&"]/g,"");
+const MEDAL=["🥇","🥈","🥉"],PL=["Ouro","Prata","Bronze"];
+PG.rank="Rank";
 const ZERO={m:0,cd:0,man:0,pr:0,us:0};
 /* ---------- comidas e ingredientes ---------- */
 const CAT={fib:"🌾 Fibras",ene:"⚡ Energia",pro:"💪 Proteínas",vit:"🍎 Vitaminas",min:"🧂 Minerais",doc:"🍯 Doces"};
@@ -28,7 +32,7 @@ function normalize(){
   const OLD=["capim","racao","silagem","mixpremium"];
   state.food=state.food&&!Array.isArray(state.food)?state.food:{};
   if(Array.isArray(state.stock)){state.food={};state.stock.forEach((n,i)=>{if(n>0)state.food[OLD[i]]=(state.food[OLD[i]]||0)+n});delete state.stock}
-  state.recipes=state.recipes||[];state.mb=state.mb||{};state.offers=state.offers||[];state.calves=state.calves||[];state.bulls=state.bulls||[];state.steers=state.steers||[];
+  state.recipes=state.recipes||[];state.trophies=state.trophies||[];if(!state.wk)state.wk={w:weekIdx(),base:st("earned")};state.mb=state.mb||{};state.offers=state.offers||[];state.calves=state.calves||[];state.bulls=state.bulls||[];state.steers=state.steers||[];
   state.trough=state.trough||{u:0,id:"capim"};if(state.trough.q!=null){state.trough.id=OLD[state.trough.q]||"capim";delete state.trough.q}if(!state.trough.id)state.trough.id="capim";
   state.worker=state.worker||{lvl:0,food:"capim",last:0,paid:0,on:true,strike:false};if(typeof state.worker.food!=="string")state.worker.food=OLD[state.worker.food]||"capim";
   state.up=Object.assign({pasto:0,cocho:0,ordenha:0,curral:0,tanque:0,salas:0,esterco:0},state.up);
@@ -146,12 +150,12 @@ function render(){
   $("#coins").textContent=fmt(state.coins);renderNav();
   if(page==="home"){$("#uniqueCount").textContent=state.seen.length+"/"+COWS.length;$("#farmNm").textContent=state.farm;$("#totalCount").textContent=state.cows.length+"/"+farmCap();
     $("#boxes").innerHTML=[...BOXES,seasonBox()].map(boxCard).join("")}
-  if(page==="comp")renderComp();
+  if(page==="comp")renderComp();if(page==="rank")renderRank();
   if(page==="farm")renderFarm();if(page==="shop")renderShop();if(page==="auction")renderAuction();if(page==="more")renderMore();if(page.startsWith("ev:"))renderEvent(page.slice(3));
 }
 function renderNav(){
   const ev=activeEvents();
-  const items=[["home","📦 Caixas"],["farm","🏡 Minha Fazenda"],["comp","📚 Compêndio"],["shop","🛒 Loja"],...ev.map(e=>["ev:"+e.id,e.e+" "+e.n]),["auction","🔨 Leilão"],["more","📋 Mais"]];
+  const items=[["home","📦 Caixas"],["farm","🏡 Minha Fazenda"],["comp","📚 Compêndio"],["shop","🛒 Loja"],["rank","🥇 Ranking"],...ev.map(e=>["ev:"+e.id,e.e+" "+e.n]),["auction","🔨 Leilão"],["more","📋 Mais"]];
   const h=items.map(([p,l])=>{const e=ev.find(x=>"ev:"+x.id===p);return `<button class="secondary ${page===p?"on":""} ${e?"evb":""}" ${e?`style="--eh:${e.h}"`:""} onclick="showPage('${p}')">${l}</button>`}).join("");
   if(renderNav.h!==h){const n=$("#nav");n.innerHTML=h;renderNav.h=h;navArrows();const on=n.querySelector&&n.querySelector(".on");if(on&&on.scrollIntoView)on.scrollIntoView({inline:"center",block:"nearest"})}
 }
@@ -238,7 +242,7 @@ function rebirthHTML(){const n=state.rb,need=25000*(n+1);return `<section class=
   <p class="dsc">Para renascer: tenha 🪙${fmt(need)}.</p><button class="primary" data-a="rebirth" ${state.coins<need?"disabled":""}>Renascer</button></div></div></section>`}
 function rebirth(){const need=25000*(state.rb+1);if(state.coins<need)return toast(`Você precisa de 🪙${fmt(need)} para renascer.`);
  if(!confirm(`Renascer? Você perde moedas, vacas, melhorias, comida e trabalhador, mas ganha bônus para sempre (nível ${state.rb+1}).`))return;
- const k={seen:state.seen,rb:state.rb+1,stats:state.stats,ach:state.ach,name:state.name,used:state.used,dev:state.dev,missions:state.missions,farm:state.farm,farmSet:state.farmSet,pid:state.pid,mt:state.mt,mb:state.mb,gs:state.gs,recipes:state.recipes,v:9};
+ const k={seen:state.seen,rb:state.rb+1,stats:state.stats,ach:state.ach,name:state.name,used:state.used,dev:state.dev,missions:state.missions,farm:state.farm,farmSet:state.farmSet,pid:state.pid,mt:state.mt,mb:state.mb,gs:state.gs,recipes:state.recipes,trophies:state.trophies,wk:state.wk,v:9};
  state=Object.assign(def(),k,{coins:1000+500*k.rb});normalize();save();toast(`♻️ Renasceu! Nível ${k.rb}.`);render()}
 /* cozinha */
 function kitchenHTML(){
@@ -360,11 +364,13 @@ function perfHTML(){
   return `<div class="panel"><h3>👤 Conta</h3>${acc}</div>
   <div class="panel"><h3>🏡 Minha fazenda</h3><p class="dsc">Nome: <b>${state.farm}</b> <button class="secondary" data-a="fname">✏️ Mudar</button></p><p class="dsc">♻️ Renascimentos: <b>${state.rb}</b> · 📚 Pelagens: <b>${state.seen.length}/${COWS.length}</b> · 💰 Ganhos: <b>🪙${fmt(st("earned"))}</b></p><p class="dsc sm">Para dar nome a uma vaca, toque no ✏️ no cartão dela.</p></div>
   <div class="panel"><h3>💾 Backup do progresso</h3><p class="dsc">Salve seu progresso num arquivo para nunca perder. Você pode restaurar quando quiser.</p><button class="primary" data-a="bkexp">📤 Exportar backup</button> <button class="secondary" data-a="bkimp">📥 Importar backup</button></div>
+  <div class="panel"><h3>🏆 Meus troféus (${state.trophies.length})</h3>${state.trophies.length?`<div class="trophies">${state.trophies.slice().reverse().map(trophyCard).join("")}</div>`:`<p class="dsc sm">Fique no top 3 do ranking semanal para ganhar troféus exclusivos.</p>`}</div>
   <p class="dsc sm">Modo: ${ONLINE?"🌐 online":"📴 offline"}</p>`}
 /* novidades */
-const NEWS=["👤 <b>Contas:</b> entre em qualquer aparelho e continue de onde parou (Mais → Perfil).","💾 <b>Backup:</b> exporte e importe seu progresso quando quiser.","📦 <b>Caixas</b> agora mostram a chance de cada raridade.","📚 <b>Compêndio:</b> o livro de pelagens virou uma página.","🍳 <b>Cozinha:</b> misture ingredientes e crie comidas melhores. Muitas comidas novas na Loja!","💕 <b>Procriação</b> com animação e 12 raças de touro.","🔨 <b>Leilão</b> mais simples, com aviso de vacas raras.","💩 <b>Nova melhoria:</b> chão de esterco.","🪜 <b>Marcos</b> recomeçam do zero quando você resgata.","🤝 <b>Contratos:</b> 50% de chance, com barra de tempo e mais empresas.","🐄 <b>+1.500 vacas novas</b>, mais acessórios e visual mais suave.","🔴 Aura <b>vermelha</b> nas Míticas e <b>dourada</b> nas etiquetas Lendárias."];
-function showNews(){$("#newsList").innerHTML=NEWS.map(x=>`<li>${x}</li>`).join("");$("#news").classList.remove("hidden")}
-function closeNews(){$("#news").classList.add("hidden");try{localStorage.setItem("vb_news","9")}catch(e){}}
+const NEWS_V="9.2";
+const NEWS=["🐛 <b>Corrigido:</b> ao escolher o tempo do contrato (5, 15 ou 30 min), o menu de desenvolvedor aparecia. Isso não acontece mais.","🥇 <b>Ranking semanal:</b> agora é uma aba ao lado da Loja e reinicia a cada 7 dias.","🏆 <b>Troféus:</b> o top 1, 2 e 3 da semana ganham um troféu exclusivo de ouro, prata ou bronze, com a semana e o nome da fazenda.","✨ O nome do top 1 brilha em <b>ouro</b>, o do top 2 em <b>prata</b> e o do top 3 em <b>bronze</b>.","⏳ Uma barra no topo mostra quanto tempo falta para a semana acabar."];
+function showNews(){$("#newsTitle").textContent="🎉 Novidades da versão "+NEWS_V;$("#newsList").innerHTML=NEWS.map(x=>`<li>${x}</li>`).join("");$("#news").classList.remove("hidden")}
+function closeNews(){$("#news").classList.add("hidden");try{localStorage.setItem("vb_news",NEWS_V)}catch(e){}}
 
 /* ---------- ações novas (antes das antigas) ---------- */
 const _ea=extraAction;
@@ -402,6 +408,39 @@ addEventListener("pagehide",()=>{try{if(ACC&&ONLINE&&cloudDirty)navigator.sendBe
 
 /* ---------- abertura ---------- */
 $("#bkFile").addEventListener("change",e=>{const f=e.target.files[0];if(f)importBackup(f);e.target.value=""});
-setTimeout(()=>{const b=$("#boot");if(!b)return;b.classList.add("out");setTimeout(()=>{b.remove&&b.remove();let seen="";try{seen=localStorage.getItem("vb_news")}catch(e){}if(seen!=="9")showNews()},700)},2300);
-let bsTry=0;const bsT=setInterval(()=>{if(++bsTry>8)return clearInterval(bsT);if(ONLINE){clearInterval(bsT);if(ACC)bootSync()}},1500);
+setTimeout(()=>{const b=$("#boot");if(!b)return;b.classList.add("out");setTimeout(()=>{b.remove&&b.remove();let seen="";try{seen=localStorage.getItem("vb_news")}catch(e){}if(seen!==NEWS_V)showNews()},700)},2300);
+let dTry=0,dBusy=false,dBoot=false;const dT=setInterval(async()=>{if(++dTry>60)return clearInterval(dT);if(!ONLINE&&!dBusy){dBusy=true;await detectOnline();dBusy=false;if(ONLINE&&dTry>1)toast("🌐 Conectado ao servidor!")}if(ONLINE&&!dBoot){dBoot=true;if(ACC)bootSync();clearInterval(dT)}},3000);
+/* ---------- ranking semanal + troféus ---------- */
+const weekly=()=>Math.max(0,st("earned")-state.wk.base);
+const clockD=ms=>{ms=Math.max(0,Math.floor(ms/1000));const d=Math.floor(ms/86400),h=Math.floor(ms%86400/3600),m=Math.floor(ms%3600/60),s=ms%60;return(d?d+"d ":"")+[h,m,s].map(x=>String(x).padStart(2,"0")).join(":")};
+const wkRange=w=>{const f=d=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});return f(new Date(WEEK0+w*WEEK_MS))+" – "+f(new Date(WEEK0+(w+1)*WEEK_MS-1))};
+async function pushScore(){if(!ONLINE)return;lastPush=Date.now();try{await api("/api/score",{pid:state.pid,name:state.farm,score:Math.round(weekly()),week:weekIdx()})}catch(e){}}
+async function fetchRank(){if(!ONLINE)return;rkAt=Date.now();try{RK=await api("/api/ranking?pid="+state.pid);if(page==="rank")renderRank()}catch(e){}}
+async function checkTrophies(){if(!ONLINE)return;trAt=Date.now();const r=await apiRaw("/api/trophies?pid="+state.pid);if(!r.ok||!r.j.awards||!r.j.awards.length)return;
+  for(const a of r.j.awards){const id=`w${a.week}p${a.place}`;if(!state.trophies.some(t=>t.id===id)){state.trophies.push({id,week:a.week,place:a.place,farm:a.name,score:a.score});toast(`🏆 Você ganhou o troféu de ${PL[a.place-1].toUpperCase()}! Semana ${a.week+1}`);confetti()}await apiRaw("/api/trophy/claim",{pid:state.pid,week:a.week})}
+  save();if(page==="rank"||page==="more")render()}
+let trAt=0;
+function trophySVG(t){const c=[["#ffd23f","#b8860b"],["#e3e9f1","#7f8c99"],["#d9965b","#8a5a2b"]][t.place-1],gem=`hsl(${(t.week*47)%360},80%,60%)`;
+  return `<svg class="trophy" viewBox="0 0 200 240"><ellipse cx="100" cy="228" rx="62" ry="8" fill="#0005"/><rect x="62" y="198" width="76" height="22" rx="6" fill="${c[1]}"/><rect x="74" y="186" width="52" height="16" rx="4" fill="${c[0]}"/><rect x="90" y="150" width="20" height="40" fill="${c[1]}"/>
+  <path d="M52 40h96v34q0 52-48 62q-48-10-48-62Z" fill="${c[0]}" stroke="${c[1]}" stroke-width="4"/><path d="M52 52H28q-4 40 30 56M148 52h24q4 40-30 56" fill="none" stroke="${c[1]}" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="100" cy="64" r="13" fill="${gem}" stroke="#fff8" stroke-width="2"/><text x="100" y="106" font-size="17" font-weight="900" text-anchor="middle" fill="#3a2d28">TOP ${t.place}</text><text x="100" y="124" font-size="11" font-weight="800" text-anchor="middle" fill="#3a2d28">Semana ${t.week+1}</text>
+  <text x="100" y="213" font-size="10" font-weight="900" text-anchor="middle" fill="#2a1a00">${esc(t.farm).slice(0,16)}</text></svg>`}
+const trophyCard=t=>`<div class="trophycard tp${t.place}">${trophySVG(t)}<b>${MEDAL[t.place-1]} ${PL[t.place-1]}</b><small>Semana ${t.week+1} · ${wkRange(t.week)}</small><small>${fmt(t.score)} pontos</small></div>`;
+function renderRank(){
+  const w=weekIdx();let list=null,rank=0,total=0,note="",last=null;
+  if(ONLINE){if(RK&&RK.week===w){list=RK.top;rank=RK.rank;total=RK.total;last=RK.last}else if(Date.now()-rkAt>3000)fetchRank()}
+  else{const d=(Date.now()-(WEEK0+w*WEEK_MS))/864e5,me={n:state.farm+" (você)",s:weekly(),me:1},all=[me,...RIV.map((n,i)=>({n,s:Math.round((200+i*i*70+rnd(i+3)*500)*(d+.2))}))].sort((a,b)=>b.s-a.s);
+    list=all.map((x,i)=>({...x,rank:i+1}));rank=list.find(x=>x.me).rank;total=list.length;note=`<div class="evban">Modo offline: rivais simulados e sem troféus. Conecte ao servidor online para disputar com pessoas reais.</div>`}
+  $("#rankv").innerHTML=`<div class="weekbar"><div class="wkt">🥇 Ranking da semana ${w+1} · ${wkRange(w)}</div><div class="bar big"><i id="wkBar"></i></div><div class="time" id="wkTime"></div><small class="dsc sm">até o ranking reiniciar</small></div>
+   ${note}<p class="dsc">Vale quem ganhar mais moedas na semana. 🥇 Top 1 ganha o troféu de <b>ouro</b>, 🥈 Top 2 de <b>prata</b> e 🥉 Top 3 de <b>bronze</b>, exclusivos da semana!</p>
+   ${list?`<p class="dsc">Você está em <b>${rank}º</b> de ${total} jogadores · sua semana: <b>🪙${fmt(weekly())}</b></p>
+   ${list.map((x,i)=>{const p=x.rank||i+1;return `<div class="fuse rkrow ${p<=3?"rk"+p:""} ${x.me?"me":""}"><span class="rkn">${p<=3?MEDAL[p-1]:p+"º"} <b class="nm">${esc(x.n)}</b></span><b>🪙 ${fmt(x.s)}</b></div>`}).join("")}`:`<div class="empty">Carregando ranking…</div>`}
+   ${last&&last.top&&last.top.length?`<h3 class="dsc cat">Vencedores da semana passada</h3>${last.top.map(x=>`<div class="fuse rkrow rk${x.place}"><span class="rkn">${MEDAL[x.place-1]} <b class="nm">${esc(x.n)}</b></span><b>🪙 ${fmt(x.s)}</b></div>`).join("")}`:""}
+   <h3 class="dsc cat">🏆 Meus troféus (${state.trophies.length})</h3>${state.trophies.length?`<div class="trophies">${state.trophies.slice().reverse().map(trophyCard).join("")}</div>`:`<p class="dsc sm">Termine uma semana no top 3 para ganhar um troféu exclusivo.</p>`}`;
+  tickRank()}
+function tickRank(){if(!$("#wkTime"))return;const w=weekIdx(),end=WEEK0+(w+1)*WEEK_MS,left=end-Date.now();$("#wkTime").textContent=clockD(left);setBar($("#wkBar"),1-left/WEEK_MS)}
+{const _et2=extraTick;extraTick=function(){_et2();const now=Date.now();
+  if(state.wk.w!==weekIdx()){state.wk={w:weekIdx(),base:st("earned")};save();if(ONLINE)pushScore();if(page==="rank")renderRank()}
+  if(page==="rank"){tickRank();if(ONLINE&&now-rkAt>10000)fetchRank()}
+  if(ONLINE&&now-trAt>60000)checkTrophies()}}
 render();detectOnline();

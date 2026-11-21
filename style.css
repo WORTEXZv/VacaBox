@@ -227,3 +227,15 @@ select,textarea{background:#2a3126;color:#f4f1e7;border:1px solid #4b5645;border
 @keyframes puff{0%{opacity:0;transform:scale(.3)}30%{opacity:.95}100%{opacity:0;transform:scale(2.4) translateY(-40px)}}
 .breveal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:84px;animation:revealPop .6s ease-out}@keyframes revealPop{from{transform:translate(-50%,-50%) scale(0)}to{transform:translate(-50%,-50%) scale(1)}}
 @media(max-width:900px){#toast{top:116px}.ann{top:116px}.limitbar{font-size:20px}.bcow,.bbull{width:120px}.container{padding-bottom:190px}}
+
+/* ===== v9.2: ranking semanal e troféus ===== */
+.weekbar{max-width:580px;margin:0 auto 14px;text-align:center;background:#22281f;border:1px solid #3c4735;border-radius:18px;padding:14px}
+.weekbar .wkt{font-weight:900;font-size:18px;color:#fff;margin-bottom:8px}.weekbar .bar.big{height:16px}.weekbar .bar i{background:linear-gradient(90deg,#d39e2e,#ffe17a)}.weekbar .time{font-size:34px}
+.rkrow{padding:12px 14px}.rkrow .nm{display:inline-block;padding:2px 12px;border-radius:999px;border:2px solid transparent;margin-left:4px;color:#fff}
+.rk1{border-color:#ffd23f!important;background:linear-gradient(90deg,#4a3d10,#22281f)!important;box-shadow:0 0 16px #ffd23f66}.rk1 .nm{border-color:#ffd23f;box-shadow:0 0 12px #ffd23f;color:#ffe27a}
+.rk2{border-color:#e3e9f1!important;background:linear-gradient(90deg,#3d434b,#22281f)!important;box-shadow:0 0 14px #e3e9f155}.rk2 .nm{border-color:#e3e9f1;box-shadow:0 0 12px #e3e9f1;color:#f4f8fc}
+.rk3{border-color:#d9965b!important;background:linear-gradient(90deg,#4a3320,#22281f)!important;box-shadow:0 0 14px #d9965b55}.rk3 .nm{border-color:#d9965b;box-shadow:0 0 12px #d9965b;color:#f0b784}
+.trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-top:8px}
+.trophycard{background:#22281f;border:2px solid #3d4737;border-radius:16px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;color:#fff}.trophycard small{color:#d6dccf}
+.trophycard.tp1{border-color:#ffd23f;box-shadow:0 0 14px #ffd23f55}.trophycard.tp2{border-color:#e3e9f1;box-shadow:0 0 14px #e3e9f144}.trophycard.tp3{border-color:#d9965b;box-shadow:0 0 14px #d9965b44}
+.trophy{width:130px;height:156px}

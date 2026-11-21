@@ -175,7 +175,7 @@ const RIV=["Tião da Roça","Maria Leiteira","Seu Zé","Dona Cida","Fazenda Boa 
 const rivScore=(i,t=Date.now())=>Math.round((1500+i*i*i*900+rnd(i+3)*4000)*(1+(t-Date.UTC(2026,10,1))/864e5*(.25+rnd(i)*.4)));
 function renderMore(){
   ensureMissions();const now=Date.now();
-  const tabs=[["mis","📋 Diárias"],["lad","🪜 Marcos"],["ach","🏆 Conquistas"],["con","🤝 Contratos"],["rank","🥇 Ranking"],["tro","🔁 Trocas"],["perf","👤 Perfil"]];
+  const tabs=[["mis","📋 Diárias"],["lad","🪜 Marcos"],["ach","🏆 Conquistas"],["con","🤝 Contratos"],["tro","🔁 Trocas"],["perf","👤 Perfil"]];
   let body="";
   if(moreTab==="mis")body=`<p style="color:#aeb6a9">5 missões novas por dia, sorteadas entre mais de ${fmt(MCOUNT)} possibilidades (marcos + diárias). Elas ficam mais difíceis e valiosas conforme você avança (nível de progresso ${stage()+1}).</p>`+state.missions.list.map((m,i)=>{const p=mprog(m);return `<div class="fuse"><span><b>${m.t}</b><br><small>${fmt(p)}/${fmt(m.g)} · prêmio 🪙${fmt(m.r)}</small><div class="bar lv"><i style="width:${p/m.g*100}%"></i></div></span>${m.done?"✅":`<button class="primary" data-a="mclaim" data-i="${i}" ${p>=m.g?"":"disabled"}>Resgatar</button>`}</div>`}).join("");
   if(moreTab==="lad")body=`<p style="color:#aeb6a9">Missões permanentes: ao resgatar, o contador volta a zero e a próxima fica mais difícil.</p>`+MK.map(m=>{const k=m[0],lad=LAD[k],t=state.mt[k]||0;if(t>=lad.length)return `<div class="fuse locked"><span>✅ <b>${m[1]} ${m[2]}</b> · todas concluídas</span></div>`;
@@ -353,27 +353,27 @@ $("#brand").addEventListener("click",()=>{const n=Date.now();bc=n-bt<1500?bc+1:1
 function openDev(){
   const d=state.dev;
   $("#devBody").innerHTML=`<div class="modal-title">🛠️ Modo desenvolvedor</div><div class="devgrid">
-   <button class="secondary" data-d="money">💰 +1.000.000 moedas</button>
-   <button class="secondary" data-d="inf">♾️ Dinheiro infinito: ${d.inf?"LIGADO":"desligado"}</button>
-   <button class="secondary" data-d="free">🎁 Caixas grátis: ${d.free?"LIGADO":"desligado"}</button>
-   <button class="secondary" data-d="skip">⏩ Zerar todos os tempos</button>
-   <button class="secondary" data-d="book">📖 Liberar livro de pelagens</button>
-   <button class="secondary" data-d="max">⬆️ Tudo no máximo</button>
-   <button class="secondary" data-d="fill">🪣 Encher cochos e água</button>
-   <button class="secondary" data-d="bulls">🐂 +1 touro de cada raça</button>
-   <button class="secondary" data-d="rbup">♻️ +1 renascimento (sem reset)</button>
-   <button class="secondary" data-d="stage">📈 Avançar progresso (missões/contratos)</button>
-   <button class="secondary" data-d="export">📤 Exportar save</button>
-   <button class="secondary" data-d="import">📥 Importar save</button>
-   <button class="secondary" data-d="clearev">🧹 Encerrar eventos forçados</button>
-   <button class="secondary" data-d="wipe" style="background:#6a2a2a">🗑️ Reiniciar do zero absoluto</button></div>
-   <div class="line"><select id="dSeason"><option value="">Estação automática</option>${SEASONS.map((s,i)=>`<option value="${i}" ${d.season===i?"selected":""}>${s.i} ${s.n}</option>`).join("")}</select> <button class="secondary" data-d="season">Aplicar</button></div>
-   <div class="line"><select id="dEv">${EVENTS.map(e=>`<option value="${e.id}">${e.e} ${e.n}</option>`).join("")}</select> <button class="secondary" data-d="event">Forçar evento (1h)</button></div>
-   <div class="line"><select id="dCow">${COWS.map(c=>`<option value="${c.id}">${c.name} (${RN[c.r]})</option>`).join("")}</select> <button class="secondary" data-d="give">Dar vaca</button></div>`;
+   <button class="secondary" data-dev="money">💰 +1.000.000 moedas</button>
+   <button class="secondary" data-dev="inf">♾️ Dinheiro infinito: ${d.inf?"LIGADO":"desligado"}</button>
+   <button class="secondary" data-dev="free">🎁 Caixas grátis: ${d.free?"LIGADO":"desligado"}</button>
+   <button class="secondary" data-dev="skip">⏩ Zerar todos os tempos</button>
+   <button class="secondary" data-dev="book">📖 Liberar livro de pelagens</button>
+   <button class="secondary" data-dev="max">⬆️ Tudo no máximo</button>
+   <button class="secondary" data-dev="fill">🪣 Encher cochos e água</button>
+   <button class="secondary" data-dev="bulls">🐂 +1 touro de cada raça</button>
+   <button class="secondary" data-dev="rbup">♻️ +1 renascimento (sem reset)</button>
+   <button class="secondary" data-dev="stage">📈 Avançar progresso (missões/contratos)</button>
+   <button class="secondary" data-dev="export">📤 Exportar save</button>
+   <button class="secondary" data-dev="import">📥 Importar save</button>
+   <button class="secondary" data-dev="clearev">🧹 Encerrar eventos forçados</button>
+   <button class="secondary" data-dev="wipe" style="background:#6a2a2a">🗑️ Reiniciar do zero absoluto</button></div>
+   <div class="line"><select id="dSeason"><option value="">Estação automática</option>${SEASONS.map((s,i)=>`<option value="${i}" ${d.season===i?"selected":""}>${s.i} ${s.n}</option>`).join("")}</select> <button class="secondary" data-dev="season">Aplicar</button></div>
+   <div class="line"><select id="dEv">${EVENTS.map(e=>`<option value="${e.id}">${e.e} ${e.n}</option>`).join("")}</select> <button class="secondary" data-dev="event">Forçar evento (1h)</button></div>
+   <div class="line"><select id="dCow">${COWS.map(c=>`<option value="${c.id}">${c.name} (${RN[c.r]})</option>`).join("")}</select> <button class="secondary" data-dev="give">Dar vaca</button></div>`;
   $("#dev").classList.remove("hidden");
 }
 document.addEventListener("click",e=>{
-  const b=e.target.closest("[data-d]");if(!b)return;const k=b.dataset.d,d=state.dev;
+  const b=e.target.closest("[data-dev]");if(!b)return;const k=b.dataset.dev,d=state.dev;
   if(k==="money")state.coins+=1e6;
   else if(k==="inf")d.inf=!d.inf;else if(k==="free")d.free=!d.free;
   else if(k==="skip"){state.cows.forEach(c=>{c.m=0;c.rest=0;c.at=0});state.calves.forEach(c=>c.g=0);state.worker.last=0;state.contracts.tryAt={}}

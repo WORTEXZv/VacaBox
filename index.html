@@ -31,6 +31,7 @@
   </div>
   <div id="pageFarm" class="page hidden"><div id="farm"></div></div>
   <div id="pageComp" class="page hidden"><div id="comp"></div></div>
+  <div id="pageRank" class="page hidden"><div id="rankv"></div></div>
   <div id="pageShop" class="page hidden"><div id="shop"></div></div>
   <div id="pageEvent" class="page hidden"><div id="event"></div></div>
   <div id="pageAuction" class="page hidden"><div id="auction"></div></div>
@@ -48,7 +49,7 @@
 <div id="nameModal" class="modal hidden"><div class="modal-card"><button class="xbtn" id="nameX" onclick="document.getElementById('nameModal').classList.add('hidden')">✕</button><div class="modal-title">🏡 Dê um nome à sua fazenda</div>
  <p class="dsc">Esse nome aparece no ranking e nos leilões.</p><input id="nameIn" class="codein" placeholder="Ex.: Fazenda Boa Vista" maxlength="24"><p class="dsc" id="nameMsg" style="color:#ffb3a8;min-height:24px"></p><button class="primary big" onclick="saveName()">Começar!</button></div></div>
 <div id="sync" class="modal hidden"><div class="modal-card wide"><div id="syncBody"></div></div></div>
-<div id="news" class="modal hidden"><div class="modal-card newscard"><button class="xbtn" onclick="closeNews()">✕</button><h2 style="margin:0 0 6px;color:#fff">🎉 Novidades da versão 9</h2><ul id="newsList"></ul><button class="yellowbtn" onclick="closeNews()">Obrigado!</button></div></div>
+<div id="news" class="modal hidden"><div class="modal-card newscard"><button class="xbtn" onclick="closeNews()">✕</button><h2 id="newsTitle" style="margin:0 0 6px;color:#fff">🎉 Novidades</h2><ul id="newsList"></ul><button class="yellowbtn" onclick="closeNews()">Obrigado!</button></div></div>
 <div id="boot"><svg class="bootlogo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="VacaBox"><circle cx="100" cy="100" r="96" fill="#f2c94c" stroke="#3a2d28" stroke-width="4"/>
 <ellipse cx="32" cy="76" rx="28" ry="16" transform="rotate(-22 32 76)" fill="#fff" stroke="#3a2d28" stroke-width="3"/><ellipse cx="34" cy="77" rx="15" ry="8" transform="rotate(-22 34 77)" fill="#f3b0ab"/>
 <ellipse cx="168" cy="76" rx="28" ry="16" transform="rotate(22 168 76)" fill="#fff" stroke="#3a2d28" stroke-width="3"/><ellipse cx="166" cy="77" rx="15" ry="8" transform="rotate(22 166 77)" fill="#f3b0ab"/>
