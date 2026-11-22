@@ -252,11 +252,13 @@ function kitchenHTML(){
   return `<section><div class="panel"><h3>🍳 Cozinha</h3><p class="dsc">Misture 2 ou 3 ingredientes diferentes para criar uma comida melhor para as vacas. Ingredientes de tipos diferentes combinam melhor! Cada mistura rende 5 porções.</p>
    <div class="kslots">${opt(0)}<span>＋</span>${opt(1)}<span>＋</span>${opt(2)}</div>
    ${mix?`<div class="kprev"><div class="kemoji">${mix.e}</div><div><b class="dsc">${mix.n}</b> ${known?"":"<span class='badge new'>NOVA!</span>"}<p class="dsc">${fxText(mix.fx)}</p></div></div>`:`<p class="dsc sm">Escolha pelo menos 2 ingredientes diferentes que você tem no estoque (compre na 🛒 Loja).</p>`}
-   <button class="primary" data-a="kmix" ${ok?"":"disabled"}>🍳 Misturar</button>${lastMix?`<p class="dsc">${lastMix}</p>`:""}</div>
+   <button class="primary" data-a="kmix" ${ok?"":"disabled"}>🍳 Misturar</button> ${redoHTML()}${lastMix?`<p class="dsc">${lastMix}</p>`:""}</div>
    <div class="panel"><h3>📖 Receitas descobertas: ${state.recipes.length}</h3><p class="dsc sm">Existem milhares de combinações. Cada uma dá um bônus diferente!</p>
    ${state.recipes.length?state.recipes.slice().reverse().slice(0,60).map(id=>{const f=foodInfo(id);return `<div class="rec"><span class="rem">${f.e}</span><div><b class="dsc">${f.n}</b><p class="dsc sm">${fxText(f.fx)} · você tem ${state.food[id]||0}</p></div></div>`}).join(""):`<p class="dsc sm">Nenhuma receita ainda. Misture algo!</p>`}</div></section>`}
+function redoHTML(){const lm=state.lastMix;if(!lm||lm.length<2||!lm.every(i=>ITEMS[i]))return"";const ok=lm.every(i=>(state.food[i]||0)>0),f=foodInfo(mixId(lm));
+  return `<div class="redo"><button class="secondary" data-a="kredo" ${ok?"":"disabled"}>🔁 Repetir mistura anterior</button><p class="dsc sm">${f.e} ${f.n}<br>${lm.map(i=>`${ITEMS[i].e} ${ITEMS[i].n} (${state.food[i]||0})`).join(" + ")}${ok?"":"<br><b style='color:#ffb3a8'>Faltam ingredientes. Compre na Loja.</b>"}</p></div>`}
 function doMix(){const sel=kSel.filter(Boolean),ids=[...new Set(sel)].sort();if(ids.length<2||ids.length!==sel.length||!ids.every(i=>(state.food[i]||0)>0))return toast("Escolha ingredientes diferentes que você tem.");
-  ids.forEach(i=>state.food[i]--);const id=mixId(ids),f=foodInfo(id);state.food[id]=(state.food[id]||0)+5;S("mixes");
+  ids.forEach(i=>state.food[i]--);state.lastMix=ids.slice();const id=mixId(ids),f=foodInfo(id);state.food[id]=(state.food[id]||0)+5;S("mixes");
   if(!state.recipes.includes(id)){state.recipes.push(id);confetti();lastMix=`🎉 Nova receita: ${f.n}!`}else lastMix=`+5 porções de ${f.n}.`;toast(lastMix);kSel=["","",""];save();render()}
 
 /* ---------- procriação ---------- */
@@ -367,8 +369,8 @@ function perfHTML(){
   <div class="panel"><h3>🏆 Meus troféus (${state.trophies.length})</h3>${state.trophies.length?`<div class="trophies">${state.trophies.slice().reverse().map(trophyCard).join("")}</div>`:`<p class="dsc sm">Fique no top 3 do ranking semanal para ganhar troféus exclusivos.</p>`}</div>
   <p class="dsc sm">Modo: ${ONLINE?"🌐 online":"📴 offline"}</p>`}
 /* novidades */
-const NEWS_V="9.4";
-const NEWS=["🧬 <b>Evolução mais difícil nas vacas raras:</b> quanto mais rara é a vaca, menor a chance de ela evoluir.","Comum → Incomum <b>70%</b> · Incomum → Rara <b>55%</b> · Rara → Épica <b>40%</b>","Épica → Lendária <b>28%</b> · Lendária → Mítica <b>15%</b> · Mítica → Única <b>5%</b>","🌿 O <b>Pasto melhorado</b> e os <b>renascimentos</b> continuam aumentando essas chances (com um limite máximo por raridade)."];
+const NEWS_V="9.5";
+const NEWS=["🍳 <b>Cozinha:</b> novo botão <b>Repetir mistura anterior</b>. Com um toque você faz a mesma mistura de novo, sem escolher os ingredientes outra vez."];
 function showNews(){$("#newsTitle").textContent="🎉 Novidades da versão "+NEWS_V;$("#newsList").innerHTML=NEWS.map(x=>`<li>${x}</li>`).join("");$("#news").classList.remove("hidden")}
 function closeNews(){$("#news").classList.add("hidden");try{localStorage.setItem("vb_news",NEWS_V)}catch(e){}}
 
@@ -381,6 +383,7 @@ extraAction=function(a,b,c){
      const n=Math.min(have,cap()-state.trough.u);if(n<=0)return toast("O cocho está cheio."),true;state.trough.u+=n;state.trough.id=f;state.food[f]-=n;if(!state.food[f])delete state.food[f];S("care");S("feeds");save();render();return true}
    case"buyf":{const it=ITEMS[id],n=+b.dataset.n;if(it&&state.coins>=it.p*n){state.coins-=it.p*n;state.food[id]=(state.food[id]||0)+n;S("foodBought",n)}save();render();return true}
    case"kmix":doMix();return true;
+   case"kredo":{const l=state.lastMix||[];if(l.length<2)return toast("Ainda não há uma mistura anterior."),true;const miss=l.filter(i=>(state.food[i]||0)<1);if(miss.length)return toast("Faltam: "+miss.map(i=>ITEMS[i].n).join(", ")+"."),true;kSel=[l[0]||"",l[1]||"",l[2]||""];doMix();return true}
    case"ctab":compR=+b.dataset.r;compN=60;renderComp();return true;
    case"cmore":compN+=60;renderComp();return true;
    case"breed":doBreed();return true;

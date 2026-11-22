@@ -1,4 +1,4 @@
-VACABOX v9.4
+VACABOX v9.5
 ============
 Jogar offline / só no celular: hospede a pasta em qualquer site estático (sem contas; ranking e leilão simulados).
 Jogar com pessoas reais, contas e ranking semanal: veja COMO-HOSPEDAR.txt.

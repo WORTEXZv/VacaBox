@@ -239,3 +239,5 @@ select,textarea{background:#2a3126;color:#f4f1e7;border:1px solid #4b5645;border
 .trophycard{background:#22281f;border:2px solid #3d4737;border-radius:16px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center;color:#fff}.trophycard small{color:#d6dccf}
 .trophycard.tp1{border-color:#ffd23f;box-shadow:0 0 14px #ffd23f55}.trophycard.tp2{border-color:#e3e9f1;box-shadow:0 0 14px #e3e9f144}.trophycard.tp3{border-color:#d9965b;box-shadow:0 0 14px #d9965b44}
 .trophy{width:130px;height:156px}
+
+.redo{margin-top:10px;padding-top:8px;border-top:1px dashed #3c4735}
