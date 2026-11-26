@@ -19,10 +19,16 @@ VB.act.lite=b=>{X().opts.lite=+b.dataset.v;applyLite();save();VB.renderPF&&VB.re
 document.body.insertAdjacentHTML("beforeend",`<div id="vbt" aria-live="polite"></div>`);
 const tbox=document.getElementById("vbt");let lastT="",lastTa=0;
 function closeT(el){if(!el||el.classList.contains("out"))return;el.classList.add("out");setTimeout(()=>el.remove(),260)}
-toast=function(t){t=String(t);if(t===lastT&&now()-lastTa<900)return;lastT=t;lastTa=now();
-  const el=document.createElement("div");el.className="vt";el.innerHTML=`<span class="vtx"></span><button class="vtc" aria-label="Fechar aviso">✕</button>`;el.querySelector(".vtx").textContent=t;
-  el.querySelector(".vtc").onclick=()=>closeT(el);tbox.appendChild(el);const live=[...tbox.children].filter(e=>!e.classList.contains("out"));while(live.length>4)closeT(live.shift());
-  let tm=setTimeout(()=>closeT(el),5200);el.onmouseenter=()=>clearTimeout(tm);el.onmouseleave=()=>{tm=setTimeout(()=>closeT(el),2500)}};
+const MUTE=[/^🤖 Automático/,/^🎁 Seu bônus diário/,/^🍵/,/^Moedas insuficientes/,/^🎟️ Caixa Verde recebida/];
+function shortT(t){return t.replace(/^🏆 Conquista: /,"🏆 ").replace(/\s*\(\+🪙[^)]*\)\s*$/,"").replace(/ foi curada!$/," curada!").replace(/^🏆 Ganhe /,"🏆 ").replace(/\.$/,"")}
+toast=function(t){t=shortT(String(t));if(MUTE.some(r=>r.test(t)))return;if(t===lastT&&now()-lastTa<1500)return;lastT=t;lastTa=now();
+  const live=[...tbox.children].filter(e=>!e.classList.contains("out"));
+  /* conquistas seguidas viram um aviso só */
+  const ach=t.startsWith("🏆")&&live.find(e=>e.dataset.k==="ach");
+  if(ach){const n=(+ach.dataset.n||1)+1;ach.dataset.n=n;ach.querySelector(".vtx").textContent=`🏆 ${n} conquistas`;clearTimeout(ach._tm);ach._tm=setTimeout(()=>closeT(ach),3000);return}
+  const el=document.createElement("div");el.className="vt";if(t.startsWith("🏆"))el.dataset.k="ach";el.innerHTML=`<span class="vtx"></span><button class="vtc" aria-label="Fechar aviso">✕</button>`;el.querySelector(".vtx").textContent=t;
+  el.querySelector(".vtc").onclick=()=>closeT(el);tbox.appendChild(el);const l2=[...tbox.children].filter(e=>!e.classList.contains("out"));while(l2.length>2)closeT(l2.shift());
+  el._tm=setTimeout(()=>closeT(el),3000);el.onmouseenter=()=>clearTimeout(el._tm);el.onmouseleave=()=>{el._tm=setTimeout(()=>closeT(el),1500)}};
 
 /* ---------- nível do fazendeiro ---------- */
 const xpFor=l=>(l-1)*(l-1)*60,lvOf=xp=>Math.floor(Math.sqrt(xp/60))+1;
@@ -64,8 +70,14 @@ function potHTML(){const x=X();
   return `<section class="shop-sec"><h2>🧪 Poções</h2><p class="dsc">Poções dão bônus por tempo limitado ou efeitos na hora. Compre e use quando quiser.</p>${buffChips()}
   <div class="sgrid">${POT.map(p=>`<div class="item potc"><div class="ie">${p.e}</div><h3>${p.n}</h3><p class="dsc">${p.d}</p><p class="dsc sm">Você tem: <b>${x.pot[p.id]||0}</b></p>
   <div class="row"><button class="primary" data-x="potbuy" data-id="${p.id}">${p.dia?"💎 "+p.dia:"🪙 "+fmt(pp(p.c))}</button><button class="secondary" data-x="potuse" data-id="${p.id}" ${(x.pot[p.id]||0)>0?"":"disabled"}>Usar</button></div></div>`).join("")}</div></section>`}
-const _rs=renderShop;
-renderShop=function(){_rs();const h=$("#shop h1");if(h)h.insertAdjacentHTML("afterend",potHTML())};
+const _rs=renderShop;let shopTab="food";
+const SHT=[["food","🌾 Alimentos"],["pot","🧪 Poções"],["up","🏗️ Melhorias"],["bull","🐂 Touros"],["reb","♻️ Renascimento"],["work","👷 Trabalhador"]];
+const SHM={"Comidas":"food","Esterco":"dung","Melhorias":"up","Trabalhador":"work","Touros":"bull","Renascimento":"reb"};
+renderShop=function(){_rs();const sh=$("#shop"),h=sh.querySelector("h1");if(!h)return;
+  [...sh.querySelectorAll(":scope > section.shop-sec")].forEach(sec=>{const t=(sec.querySelector("h2")||{}).textContent||"",k=Object.keys(SHM).find(w=>t.includes(w)),key=k?SHM[k]:"";if(key==="dung"||key!==shopTab)sec.remove()});
+  if(shopTab==="pot")sh.insertAdjacentHTML("beforeend",potHTML());
+  h.insertAdjacentHTML("afterend",`<div class="tabs">${SHT.map(([k,l])=>`<button class="secondary ${shopTab===k?"on":""}" data-x="stab" data-t="${k}">${l}</button>`).join("")}</div>`)};
+VB.act.stab=b=>{shopTab=b.dataset.t;render()};
 
 /* ---------- caixas: garantia, vender/manter e abertura automática ---------- */
 function pityInfo(box){const p=box.p||EXP;let r=-1;for(let i=p.length-1;i>=0;i--)if(p[i]>=.5){r=i;break}if(r<0)for(let i=p.length-1;i>=0;i--)if(p[i]>0){r=i;break}
@@ -224,5 +236,15 @@ let bonusShown=false;VB.tickers.push(()=>{if(bonusShown||$("#boot"))return;bonus
   if(bonusPending()&&localStorage.getItem("vb_bonus_day")!==VB.dayKey()){try{localStorage.setItem("vb_bonus_day",VB.dayKey())}catch(e){}
     const go=()=>{if($("#news").classList.contains("hidden"))VB.act.bonus();else setTimeout(go,700)};setTimeout(go,900)}});
 
+let pastoN=4;
+const isMob=()=>matchMedia("(max-width:820px)").matches;
+const _rf=renderFarm;
+renderFarm=function(){_rf();if(!isMob()||farmTab!=="pasto")return;const pas=document.querySelector("#farm .pasture");if(!pas)return;
+  const info=[...pas.querySelectorAll(".fcow")].map(el=>{const d=el.querySelector("[data-cd]"),c=d?cowBy(+d.dataset.cd):null;return{el,c}}).filter(x=>x.c);
+  info.sort((a,b)=>type(b.c).r-type(a.c).r||(b.c.sh?1:0)-(a.c.sh?1:0)||b.c.L-a.c.L);
+  info.forEach((x,i)=>{if(i<pastoN)pas.appendChild(x.el);else x.el.remove()});
+  pas.querySelectorAll(".fcow").forEach(()=>{});
+  if(info.length>pastoN)pas.insertAdjacentHTML("afterend",`<div class="pmoreb"><button class="secondary" data-x="pmore">Mostrar Mais (${info.length-pastoN})</button></div>`)};
+VB.act.pmore=()=>{pastoN+=8;render()};
 applyLite();render();
 })();

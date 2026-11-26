@@ -210,7 +210,7 @@ VB.act.bclaim=b=>{const x=bossRoll(),pct=+b.dataset.p,t=BT.find(a=>a[0]===pct),s
   if(r.coin)earn(r.coin);if(r.dia)VB.addDia(r.dia,true);if(r.tix)X().tix[r.tix]=(X().tix[r.tix]||0)+1;if(r.pot)X().pot[r.pot]=(X().pot[r.pot]||0)+1;x.cl[pct]=1;VB.sfx("claim");toast("🌍 Recompensa do chefe resgatada!");save();render()};
 VB.moreBody.x_boss=()=>{if(now()-bossAt>15000)loadBoss();const x=bossRoll(),d=bossD,end=WEEK0+(weekIdx()+1)*WEEK_MS;
   if(!d)return `<div class="empty" data-boss>Carregando o chefe…</div>`;const pct=clamp(d.total/d.goal*100,0,100),ok=x.c>=500;
-  return `<div class="bossx" data-boss><div class="bossart ${pct>=100?"dead":""}"><div class="bcow">${cowSVG({id:"boss",name:"Vaca Gigante",r:0,body:"#f4efe4",spots:"#2a2420",pat:1})}</div><div class="bname">Vaca Gigante Devoradora</div></div>
+  return `<div class="bossx" data-boss>
   <div class="exh"><h2>🌍 Chefe Global</h2><div class="xtime">⏳ Termina em <b data-xt="${end}">${clockD(end-now())}</b></div></div>
   <p class="dsc">Todos os jogadores produzem leite juntos para encher a barriga da vaca gigante. Quanto mais leite, mais prêmios!</p>
   <div class="bossbar big"><i style="width:${pct}%"></i><span>${fmt(d.total)} / ${fmt(d.goal)} L · ${pct.toFixed(1)}%</span>${BT.map(t=>`<u style="left:${t[0]}%"></u>`).join("")}</div>

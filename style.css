@@ -421,3 +421,20 @@ html.lite svg,html.lite .cow-art svg{filter:none!important}
 @media(max-width:700px){#vbt{top:46%;width:min(300px,78vw)}.vt{font-size:15px}.bcow{font-size:90px}.rkme{grid-template-columns:1fr 1fr 1fr}.rkme b{font-size:20px}}
 .bcow{font-size:0!important;line-height:0}.bcow svg{width:280px;height:205px;animation:bbreathe 3s ease-in-out infinite;filter:drop-shadow(0 10px 14px #000a)}.bossart.dead .bcow svg{filter:grayscale(1);animation:none}
 .copt em,.copt small{color:#fff!important}.copt em{font-size:13px}.codein::placeholder,input::placeholder{color:#d8dccf;opacity:1}.xbtn{z-index:6}
+
+/* ===== v11.1: celular — fazenda compacta ===== */
+.pmoreb{text-align:center;margin:10px 0 14px}.pmoreb button{width:100%;padding:12px;font-size:17px}
+@media(max-width:900px){
+  .container{padding:12px 10px 96px}
+  .parlor{left:auto!important;right:8px!important;bottom:8px!important;width:min(58vw,236px)!important;max-height:none!important;padding:4px!important;border-radius:14px}
+  .parlor .rooms{gap:4px}.parlor .room{flex:0 0 68px;height:50px}.parlor .room svg{width:48px;height:36px}.parlor h3,.parlor>small,.parlor .ph{display:none!important}
+  .hud{grid-template-columns:1fr 1fr!important;gap:8px!important}.hud .hc:nth-child(2){grid-column:1/-1;order:3}
+  .hc{padding:10px!important;gap:8px!important}.hc .big{font-size:34px!important}.time{font-size:22px!important}.time.sm{font-size:17px!important}.bigp{font-size:22px!important}
+  .hc small{font-size:12px!important}.hud svg{max-height:64px}.hc .primary{padding:8px 10px;font-size:14px}
+  .scene{height:150px!important}.scene .dc{font-size:min(var(--fs,26px),26px)}
+  .wpanel{grid-template-columns:1fr!important;padding:8px 10px!important;gap:6px!important}.wnow{font-size:14px!important}.wbig{font-size:30px!important}.wf{font-size:16px;padding:3px 6px}.wfl{overflow-x:auto}.wed button{padding:7px 9px;font-size:13px}
+  .pasture{gap:8px!important}.fcow button{flex:1 1 calc(50% - 4px)!important}.fcow .row{gap:4px}.fcow .cow-art{height:70px!important}.fcow .cow-art svg{width:90px!important;height:68px!important}
+  .tabs{gap:6px}.tabs button{padding:7px 9px!important;font-size:13px!important}
+  .sickban{padding:8px;font-size:15px}.fuse{padding:8px}
+  .vt{font-size:14px;padding:8px 8px 8px 11px}#vbt{width:min(260px,74vw);top:42%}
+}

@@ -200,7 +200,7 @@ function showPage(p){
   $("#page"+(p.startsWith("ev:")?"Event":PG[p])).classList.remove("hidden");render();scrollTo(0,0);
 }
 function allBoxes(){return [...BOXES,seasonBox(),...activeEvents().map(eventBox)]}
-const seasonBox=()=>{const s=SEI(Date.now());return{id:"s"+s,name:"Caixa de "+SEASONS[s].n,price:800,emoji:SEASONS[s].i,ex:"s"+s,p:EXPS,desc:"Vacas exclusivas da estação! Só saem aqui."}};
+const seasonBox=()=>{const s=SEI(Date.now());return{id:"s"+s,name:"Caixa de "+SEASONS[s].n,price:4500,emoji:SEASONS[s].i,ex:"s"+s,p:EXPS,desc:"Vacas exclusivas da estação! Só saem aqui."}};
 const eventBox=e=>({id:"ev_"+e.id,name:"Caixa "+e.n,price:1500,emoji:e.e,ex:e.id,p:EXP,desc:"Vacas exclusivas do evento! Só saem aqui."});
 function boxCard(b){return `<article class="box ${b.id==="arco"?"rb":""} ${b.ex?"exb":""}"><div class="box-emoji">${b.emoji}</div><h3>${b.name}</h3><p>${b.desc}</p>
   ${b.ex?`<small>⭐ ${COWS.filter(c=>c.ex===b.ex&&state.seen.includes(c.id)).length}/${COWS.filter(c=>c.ex===b.ex).length} vacas exclusivas descobertas</small>`:""}<div class="price">🪙 ${fmt(b.price)}</div>

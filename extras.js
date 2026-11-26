@@ -15,7 +15,7 @@ function activeEvents(){
   const out=[],md=mdNow();
   EVENTS.forEach((e,i)=>{let until=0;
     if(e.k==="d"){if(e.f<=e.t?(md>=e.f&&md<=e.t):(md>=e.f||md<=e.t))until=1}
-    else for(const o of [0,1]){const s=hr()-o;if(rnd(s*7.3+1)<.01&&Math.floor(rnd(s*3.1+5)*RNDEV.length)===RNDEV.indexOf(e))until=(s+2)*3600000}
+    else for(const o of [0,1]){const s=hr()-o;if(rnd(s*7.3+1)<.10&&Math.floor(rnd(s*3.1+5)*RNDEV.length)===RNDEV.indexOf(e))until=(s+2)*3600000}
     const f=state.dev.force.find(x=>x.id===e.id&&x.until>Date.now());if(f)until=Math.max(until,f.until);
     if(until)out.push({...e,until})});
   return out;
