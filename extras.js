@@ -48,7 +48,7 @@ function renderEvent(id){
     <div class="evtag">💰 Leite vale +2× (agora ${n} evento(s) = ${n*2}×) · ${ev.k==="r"?`termina em <b id="evT">${clock(ev.until-Date.now())}</b>`:`disponível até ${mdTxt(ev.t)}`}</div></div></div>
     <div class="boxes one">${boxCard(b)}</div><h2>⭐ Vacas exclusivas deste evento</h2>
     <div class="collection">${cows.map(c=>{const o=state.seen.includes(c.id);return `<div class="collection-card ${o?"":"locked"}">${o?`<div class="cow-art">${cowSVG(c)}</div>`:`<div class="silhouette">?</div>`}<h3>${o?c.name:"???"}</h3><span class="badge ${RC[c.r]}">${RN[c.r]}</span></div>`}).join("")}</div>
-    <small style="color:#aeb6a9">Estas vacas só saem desta caixa. Depois do evento a caixa some, mas as vacas ficam com você.</small></div>`;
+    <small style="color:#fff">Estas vacas só saem desta caixa. Depois do evento a caixa some, mas as vacas ficam com você.</small></div>`;
 }
 
 /* ---- procriação ---- */
@@ -155,7 +155,7 @@ function openChart(){
    <div class="bigchart"><svg viewBox="0 0 ${W} ${H}">${g}${sb}<path d="M${P(tr,0)}" fill="none" stroke="#8fc7ff" stroke-width="2" stroke-dasharray="6 5"/><path d="M${P(pr,0)}" fill="none" stroke="#ffd76a" stroke-width="3" stroke-linejoin="round"/>
    <line x1="${X(B)}" x2="${X(B)}" y1="${T}" y2="${H-Bm}" stroke="#fff" opacity=".6"/><circle cx="${X(B)}" cy="${Y(cur)}" r="6" fill="#fff"><animate attributeName="r" values="5;8;5" dur="1.6s" repeatCount="indefinite"/></circle>
    <text x="${X(B/2)}" y="${H-8}" fill="#aeb6a9" font-size="12" text-anchor="middle">passado (2 h)</text><text x="${X(B+F/2)}" y="${H-8}" fill="#8fc7ff" font-size="12" text-anchor="middle">tendência (próx. 1 h)</text></svg></div>
-   <small style="color:#aeb6a9">Linha amarela = preços reais. Linha azul tracejada = tendência da estação (o preço real oscila ao redor dela).</small>
+   <small style="color:#fff">Linha amarela = preços reais. Linha azul tracejada = tendência da estação (o preço real oscila ao redor dela).</small>
    <div class="time sm" id="cTime"></div><small>até o próximo preço</small>${guessBtns()}`;
   $("#chart").classList.remove("hidden");
 }
@@ -177,13 +177,13 @@ function renderMore(){
   ensureMissions();const now=Date.now();
   const tabs=[["mis","📋 Diárias"],["lad","🪜 Marcos"],["ach","🏆 Conquistas"],["con","🤝 Contratos"],["tro","🔁 Trocas"],["perf","👤 Perfil"]];
   let body="";
-  if(moreTab==="mis")body=`<p style="color:#aeb6a9">5 missões novas por dia, sorteadas entre mais de ${fmt(MCOUNT)} possibilidades (marcos + diárias). Elas ficam mais difíceis e valiosas conforme você avança (nível de progresso ${stage()+1}).</p>`+state.missions.list.map((m,i)=>{const p=mprog(m);return `<div class="fuse"><span><b>${m.t}</b><br><small>${fmt(p)}/${fmt(m.g)} · prêmio 🪙${fmt(m.r)}</small><div class="bar lv"><i style="width:${p/m.g*100}%"></i></div></span>${m.done?"✅":`<button class="primary" data-a="mclaim" data-i="${i}" ${p>=m.g?"":"disabled"}>Resgatar</button>`}</div>`}).join("");
-  if(moreTab==="lad")body=`<p style="color:#aeb6a9">Missões permanentes: ao resgatar, o contador volta a zero e a próxima fica mais difícil.</p>`+MK.map(m=>{const k=m[0],lad=LAD[k],t=state.mt[k]||0;if(t>=lad.length)return `<div class="fuse locked"><span>✅ <b>${m[1]} ${m[2]}</b> · todas concluídas</span></div>`;
+  if(moreTab==="mis")body=`<p style="color:#fff">5 missões novas por dia, sorteadas entre mais de ${fmt(MCOUNT)} possibilidades (marcos + diárias). Elas ficam mais difíceis e valiosas conforme você avança (nível de progresso ${stage()+1}).</p>`+state.missions.list.map((m,i)=>{const p=mprog(m);return `<div class="fuse"><span><b>${m.t}</b><br><small>${fmt(p)}/${fmt(m.g)} · prêmio 🪙${fmt(m.r)}</small><div class="bar lv"><i style="width:${p/m.g*100}%"></i></div></span>${m.done?"✅":`<button class="primary" data-a="mclaim" data-i="${i}" ${p>=m.g?"":"disabled"}>Resgatar</button>`}</div>`}).join("");
+  if(moreTab==="lad")body=`<p style="color:#fff">Missões permanentes: ao resgatar, o contador volta a zero e a próxima fica mais difícil.</p>`+MK.map(m=>{const k=m[0],lad=LAD[k],t=state.mt[k]||0;if(t>=lad.length)return `<div class="fuse locked"><span>✅ <b>${m[1]} ${m[2]}</b> · todas concluídas</span></div>`;
     const g=lad[t],p=Math.min(g,ladProg(k));return `<div class="fuse"><span><b>${mkLabel(m,g)}</b> <small>(missão ${t+1}/${lad.length})</small><br><small>${fmt(p)}/${fmt(g)} · prêmio 🪙${fmt(mkRew(m,t))}</small><div class="bar lv"><i style="width:${p/g*100}%"></i></div></span><button class="primary" data-a="mlad" data-k="${k}" ${p>=g?"":"disabled"}>Resgatar</button></div>`}).join("");
   if(moreTab==="ach"){const gs={};ACH.forEach(a=>(gs[a.g]=gs[a.g]||[]).push(a));const tot=ACH.filter(a=>state.ach[a.id]).length;
-    body=`<p style="color:#aeb6a9">🏆 ${tot}/${ACH.length} conquistas</p>`+Object.entries(gs).map(([g,l])=>`<details class="det"><summary>${g} · ${l.filter(a=>state.ach[a.id]).length}/${l.length}</summary>${l.map(a=>`<div class="fuse ${state.ach[a.id]?"":"locked"}"><span>${state.ach[a.id]?"🏆":"🔒"} <b>${a.n}</b></span><small>🪙${fmt(a.r)}</small></div>`).join("")}</details>`).join("")}
+    body=`<p style="color:#fff">🏆 ${tot}/${ACH.length} conquistas</p>`+Object.entries(gs).map(([g,l])=>`<details class="det"><summary>${g} · ${l.filter(a=>state.ach[a.id]).length}/${l.length}</summary>${l.map(a=>`<div class="fuse ${state.ach[a.id]?"":"locked"}"><span>${state.ach[a.id]?"🏆":"🔒"} <b>${a.n}</b></span><small>🪙${fmt(a.r)}</small></div>`).join("")}</details>`).join("")}
   if(moreTab==="con"){const un=COMPANIES.filter(c=>st("earned")>=c.u),lk=COMPANIES.filter(c=>st("earned")<c.u);
-  body=`<p style="color:#aeb6a9">Empresas pagam mais pelo leite. Cumpra a missão, tente o contrato (chance baixa, 30 min entre tentativas) e escolha a duração: <b>5 min = ×1.8</b>, <b>15 min = ×1.5</b>, <b>30 min = ×1.3</b>. Você desbloqueou <b>${un.length}/${COMPANIES.length}</b> empresas — novas aparecem conforme você ganha mais moedas.</p>`+un.map(c=>{
+  body=`<p style="color:#fff">Empresas pagam mais pelo leite. Cumpra a missão, tente o contrato (chance baixa, 30 min entre tentativas) e escolha a duração: <b>5 min = ×1.8</b>, <b>15 min = ×1.5</b>, <b>30 min = ×1.3</b>. Você desbloqueou <b>${un.length}/${COMPANIES.length}</b> empresas — novas aparecem conforme você ganha mais moedas.</p>`+un.map(c=>{
     const act=state.contracts.act.find(a=>a.id===c.id&&a.until>now),pend=state.contracts.pend.includes(c.id),q=state.contracts.qual[c.id],p=q?Math.min(c.g,st(c.k)-q.base):0,cd=(state.contracts.tryAt[c.id]||0)+1800000-now;
     let act2;if(act)act2=`<b>✅ Ativo ×${act.m}</b><br><small>termina em ${clock(act.until-now)}</small>`;
     else if(pend)act2=CDUR.map((d,i)=>`<button class="primary" data-a="cdur" data-id="${c.id}" data-d="${i}">${d[0]} min · ×${d[1]}</button>`).join(" ");
@@ -192,10 +192,10 @@ function renderMore(){
     return `<div class="fuse"><span>${c.e} <b>${c.n}</b><br><small>Missão: ${c.t} · chance ${(c.ch*100).toFixed(c.ch<.1?1:0)}%</small>${q&&p<c.g?`<div class="bar lv"><i style="width:${p/c.g*100}%"></i></div><small>${fmt(p)}/${fmt(c.g)}</small>`:""}</span><div>${act2}</div></div>`}).join("")+(lk.length?`<div class="fuse locked"><span>🔒 <b>${lk.length} empresas trancadas</b><br><small>A próxima exige 🪙${fmt(lk[0].u)} ganhos no total.</small></span></div>`:"")}
   
   if(moreTab==="rank"){
-    if(ONLINE){body=`<p style="color:#aeb6a9">🌐 Ranking online com jogadores reais. Pontuação = moedas ganhas no total.</p><button class="secondary" data-a="rankrefresh">🔄 Atualizar</button>`+(RK?`<p>Você está em <b>${RK.rank}º</b> de ${RK.total} jogadores.</p>`+RK.top.map((x,i)=>`<div class="fuse ${x.me?"me":""}"><span>${i+1}º <b>${x.n}</b></span><b>🪙 ${fmt(x.s)}</b></div>`).join(""):"<div class='empty'>Carregando…</div>")}
+    if(ONLINE){body=`<p style="color:#fff">🌐 Ranking online com jogadores reais. Pontuação = moedas ganhas no total.</p><button class="secondary" data-a="rankrefresh">🔄 Atualizar</button>`+(RK?`<p>Você está em <b>${RK.rank}º</b> de ${RK.total} jogadores.</p>`+RK.top.map((x,i)=>`<div class="fuse ${x.me?"me":""}"><span>${i+1}º <b>${x.n}</b></span><b>🪙 ${fmt(x.s)}</b></div>`).join(""):"<div class='empty'>Carregando…</div>")}
     else{const me={n:state.farm+" (você)",s:st("earned"),me:1},all=[me,...RIV.map((n,i)=>({n,s:rivScore(i)}))].sort((a,b)=>b.s-a.s);
       body=`<div class="evban">⚠️ Modo offline: rivais simulados. Para jogar com pessoas reais, hospede o servidor (veja o LEIA-ME).</div>`+all.map((x,i)=>`<div class="fuse ${x.me?"me":""}"><span>${i+1}º <b>${x.n}</b></span><b>🪙 ${fmt(x.s)}</b></div>`).join("")}}
-  if(moreTab==="tro")body=`<p style="color:#aeb6a9">${ONLINE?"🌐 Trocas online: gere um código de 6 números e passe para um amigo; ele digita aqui para receber.":"Modo offline: o código tem só números e pode ser usado em outro aparelho."} A vaca sai da sua fazenda assim que o código é gerado.</p>
+  if(moreTab==="tro")body=`<p style="color:#fff">${ONLINE?"🌐 Trocas online: gere um código de 6 números e passe para um amigo; ele digita aqui para receber.":"Modo offline: o código tem só números e pode ser usado em outro aparelho."} A vaca sai da sua fazenda assim que o código é gerado.</p>
     <div class="panel"><h3>📤 Oferecer uma vaca</h3><button class="primary" data-a="topen" ${state.cows.length?"":"disabled"}>🐄 Escolher vaca e gerar código</button>
     ${lastCode?`<div class="codebox">${lastCode}</div><button class="secondary" data-a="tcopy">📋 Copiar código</button>`:""}
     ${state.offers.length?`<h3 style="margin-top:12px">Ofertas aguardando</h3>${state.offers.map((o,i)=>`<div class="line"><b>${fmtCode(o.code)}</b> · ${type({t:o.t}).name} <button class="secondary" data-a="tcancel" data-i="${i}">Cancelar e recuperar</button></div>`).join("")}`:""}</div>

@@ -257,7 +257,7 @@ function renderFarm(){
     ${w.lvl?`<div class="panel">👷 <b>Trabalhador nv ${w.lvl}</b>: ${!w.on?"parado":w.strike?"em greve (sem moedas)":"trabalhando"}<div class="time sm" id="wtime"></div><small>próxima ação</small><div class="bar"><i id="wbar"></i></div></div>`:""}
     ${troughHTML()}
    </aside></div>
-  ${farmTab==="pasto"?`<section class="section"><h2>🔀 Fusão</h2><p style="color:#aeb6a9">Junte 3 vacas repetidas: chance base de ${fuseChance(0)}% de ganhar uma vaca de raridade melhor (metade para Mítica/Única). Se falhar, você recebe 1 vaca da mesma raridade.</p>
+  ${farmTab==="pasto"?`<section class="section"><h2>🔀 Fusão</h2><p style="color:#fff">Junte 3 vacas repetidas: chance base de ${fuseChance(0)}% de ganhar uma vaca de raridade melhor (metade para Mítica/Única). Se falhar, você recebe 1 vaca da mesma raridade.</p>
    ${fuse.length?fuse.map(([id,l])=>{const t=COWS.find(x=>x.id===id);return `<div class="fuse"><span><b>${t.name}</b> <span class="badge ${RC[t.r]}">${RN[t.r]}</span> × ${l.length}</span><button class="primary" data-a="fuse" data-id="${id}">Fundir 3</button></div>`}).join(""):`<div class="empty">Você precisa de 3 vacas iguais para fundir.</div>`}</section>`:""}`;
   paintRooms();tick(true);
 }

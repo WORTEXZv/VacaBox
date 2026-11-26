@@ -6,7 +6,7 @@ const http=require("http"),fs=require("fs"),path=require("path"),crypto=require(
 const PORT=+process.env.PORT||3000,BOT=process.env.HOUSE_BOT!=="0",DEBUG=process.env.DEBUG==="1",DATA=path.join(__dirname,"data.json");
 const UR=process.env.UPSTASH_REDIS_REST_URL,UT=process.env.UPSTASH_REDIS_REST_TOKEN;
 let skew=0;const now=()=>Date.now()+skew;
-let D={players:{},trades:{},results:{},accounts:{},sessions:{},awards:[],weeksTop:{},fin:null};try{D={...D,...JSON.parse(fs.readFileSync(DATA,"utf8"))}}catch(e){}
+let D={players:{},trades:{},results:{},accounts:{},sessions:{},awards:[],weeksTop:{},fin:null,profiles:{},clans:{},cm:{},gifts:{},giftlog:{},show:{},boss:{},fc:{},fcr:{},inv:{},weeksAll:{}};try{D={...D,...JSON.parse(fs.readFileSync(DATA,"utf8"))}}catch(e){}
 async function loadRemote(){if(!UR)return;try{const r=await fetch(UR+"/get/vacabox",{headers:{Authorization:"Bearer "+UT}}),j=await r.json();if(j.result)D={...D,...JSON.parse(j.result)};console.log("dados carregados do Redis")}catch(e){console.log("falha ao ler Redis:",e.message)}}
 async function saveRemote(){if(!UR)return;try{await fetch(UR,{method:"POST",headers:{Authorization:"Bearer "+UT},body:JSON.stringify(["SET","vacabox",JSON.stringify(D)])})}catch(e){}}
 const saveD=()=>{fs.writeFile(DATA,JSON.stringify(D),()=>{});saveRemote()};setInterval(saveD,30000);
@@ -25,9 +25,23 @@ function finalizeWeeks(){
   const cur=weekIdx(now());if(D.fin==null)D.fin=cur-1;if(D.fin>=cur-1)return;
   for(let w=D.fin+1;w<=cur-1;w++){
     const top=Object.entries(D.players).filter(([id,p])=>p.w===w&&p.s>0).sort((a,b)=>b[1].s-a[1].s).slice(0,3);
-    D.weeksTop[w]=top.map(([id,p],i)=>({n:p.n,s:p.s,place:i+1}));
+    D.weeksTop[w]=top.map(([id,p],i)=>({n:p.n,s:p.s,place:i+1}));D.weeksAll[w]=Object.entries(D.players).filter(([id,p])=>p.w===w&&p.s>0).sort((a,b)=>b[1].s-a[1].s).slice(0,200).map(([id,p])=>[id,p.n,Math.round(p.s)]);
     top.forEach(([id,p],i)=>D.awards.push({week:w,place:i+1,pid:id,name:p.n,score:p.s,claimed:false}));D.fin=w}
-  D.awards=D.awards.filter(a=>!a.claimed||cur-a.week<8);for(const k of Object.keys(D.weeksTop))if(cur-k>10)delete D.weeksTop[k];saveD()}
+  D.awards=D.awards.filter(a=>!a.claimed||cur-a.week<8);for(const k of Object.keys(D.weeksTop))if(cur-k>10)delete D.weeksTop[k];for(const k of Object.keys(D.weeksAll))if(cur-k>6)delete D.weeksAll[k];saveD()}
+
+/* ===== v10: perfis, cooperativas, presentes, exposição e chefe global ===== */
+const cs=(s,n)=>String(s==null?"":s).replace(/[<>&"]/g,"").slice(0,n);
+const cleanProf=p=>{p=p||{};const s=(k,n)=>cs(p[k],n),i=k=>Math.max(0,Math.min(1e13,+p[k]||0));
+  return{av:s("av",30),fr:s("fr",16),ba:s("ba",16),nc:s("nc",16),na:s("na",16),ti:s("ti",40),bio:s("bio",70),bd:Array.isArray(p.bd)?p.bd.slice(0,3).map(x=>cs(x,8)):[],rb:i("rb"),seen:i("seen"),cows:i("cows"),
+   top:Array.isArray(p.top)?p.top.slice(0,6).map(t=>({t:cs(t&&t.t,30),sh:t&&t.sh?1:0})):[],tro:i("tro"),pet:p.pet&&p.pet.t?{t:cs(p.pet.t,30),sh:p.pet.sh?1:0}:null,earned:i("earned"),clan:cs(p.clan,16),prem:p.prem?1:0,fx:s("fx",12),st:s("st",8),lv:Math.max(1,Math.min(999,+p.lv||1))}};
+const dayK=()=>new Date(now()).toISOString().slice(0,10);
+const clanPub=(id,me)=>{const c=D.clans[id];if(!c)return null;const wk=weekIdx(now()),all=Object.entries(c.m).map(([pid,m])=>{const p=D.players[pid];return{n:m.n,s:p&&p.w===wk?p.s:0}}).sort((a,b)=>b.s-a.s);
+  return{id,code:c.code||"",owner:me&&c.o===me?1:0,name:c.n,emoji:c.e,members:all.length,total:all.reduce((a,m)=>a+m.s,0),list:all.slice(0,20)}};
+const fcode=pid=>{if(D.fc[pid])return D.fc[pid];let c;do{c=String(100000+Math.floor(Math.random()*900000))}while(D.fcr[c]);D.fc[pid]=c;D.fcr[c]=pid;return c};
+const leaveClan=pid=>{const id=D.cm[pid];if(!id)return;const c=D.clans[id];delete D.cm[pid];if(c){delete c.m[pid];if(!Object.keys(c.m).length)delete D.clans[id];else if(c.o===pid)c.o=Object.keys(c.m)[0]}};
+function v10gc(){const wk=weekIdx(now());for(const w of Object.keys(D.show))if(wk-w>6)delete D.show[w];for(const w of Object.keys(D.boss))if(wk-w>4)delete D.boss[w];
+  for(const k of Object.keys(D.gifts)){D.gifts[k]=D.gifts[k].filter(g=>now()-g.t<7*864e5);if(!D.gifts[k].length)delete D.gifts[k]}}
+setInterval(v10gc,600000);
 let AU=null;
 function settle(){
   if(!AU||!AU.over||AU.settled)return;AU.settled=true;
@@ -60,6 +74,7 @@ http.createServer((req,res)=>{
     try{
       if(p==="/api/ping")return J(res,200,{vacabox:1,players:Object.keys(D.players).length});
       if(p==="/api/_skew"&&DEBUG){skew+=+b.ms||0;step();return J(res,200,{skew})}
+      if(p==="/api/clan/top"){return J(res,200,{top:Object.keys(D.clans).map(clanPub).filter(Boolean).sort((a,b)=>b.total-a.total).slice(0,15).map(c=>({id:c.id,name:c.name,emoji:c.emoji,members:c.members,total:c.total}))})}
       const ip=String(req.headers["x-forwarded-for"]||req.socket.remoteAddress||"").split(",")[0].trim();
       if(p==="/api/account/register"&&req.method==="POST"){const u=String(b.user||"").trim().toLowerCase(),pw=String(b.pass||"");
         if(tooMany("r"+ip))return J(res,429,{error:"muitas"});bad("r"+ip);
@@ -80,7 +95,7 @@ http.createServer((req,res)=>{
       if(p==="/api/ranking"){finalizeWeeks();const wk=weekIdx(now()),all=Object.entries(D.players).filter(([id,x])=>x.w===wk).map(([id,x])=>({id,n:x.n,s:x.s})).sort((a,c)=>c.s-a.s),
         top=all.slice(0,50).map((x,i)=>({n:x.n,s:x.s,me:x.id===pid,rank:i+1})),i=all.findIndex(x=>x.id===pid);
         if(i>=50)top.push({n:all[i].n,s:all[i].s,me:true,rank:i+1});
-        return J(res,200,{week:wk,ends:WEEK0+(wk+1)*WEEK_MS,top,rank:i<0?all.length+1:i+1,total:all.length,last:D.weeksTop[wk-1]?{week:wk-1,top:D.weeksTop[wk-1]}:null})}
+        return J(res,200,{week:wk,ends:WEEK0+(wk+1)*WEEK_MS,top,rank:i<0?all.length+1:i+1,total:all.length,last:D.weeksTop[wk-1]?{week:wk-1,top:D.weeksTop[wk-1]}:null,lastMe:(()=>{const a=D.weeksAll[wk-1]||[],i=a.findIndex(x=>x[0]===pid);return D.weeksAll[wk-1]?{week:wk-1,rank:i<0?0:i+1,score:i<0?0:a[i][2],total:a.length}:null})(),lastTop:(D.weeksAll[wk-1]||[]).slice(0,10).map((x,i)=>({n:x[1],s:x[2],rank:i+1,me:x[0]===pid}))})}
       if(p==="/api/trophies"){finalizeWeeks();return J(res,200,{awards:D.awards.filter(a=>a.pid===pid&&!a.claimed)})}
       if(p==="/api/trophy/claim"&&req.method==="POST"){const a=D.awards.find(x=>x.pid===pid&&x.week===+b.week&&!x.claimed);if(a){a.claimed=true;saveD()}return J(res,200,{ok:1})}
       if(p==="/api/auction"&&req.method==="GET")return J(res,200,pub(pid));
@@ -93,6 +108,31 @@ http.createServer((req,res)=>{
         for(const k of Object.keys(D.trades))if(now()-D.trades[k].t>48*3600000)delete D.trades[k];return J(res,200,{code})}
       if(p==="/api/trade/redeem"){const x=D.trades[b.code];if(!x)return J(res,404,{error:"codigo"});delete D.trades[b.code];return J(res,200,{cow:x.cow})}
       if(p==="/api/trade/cancel"){const x=D.trades[b.code];if(!x||x.pid!==pid)return J(res,404,{error:"codigo"});delete D.trades[b.code];return J(res,200,{cow:x.cow})}
+      if(p==="/api/profile/set"&&req.method==="POST"){D.profiles[pid]={n:cleanName(b.name),p:cleanProf(b.p),t:now()};return J(res,200,{ok:1})}
+      if(p==="/api/profile/get"){const t=String(u.searchParams.get("target")||""),x=D.profiles[t];if(!x)return J(res,404,{error:"nada"});return J(res,200,{name:x.n,p:x.p})}
+      if(p==="/api/clan/me"){return J(res,200,{clan:clanPub(D.cm[pid],pid)})}
+      if(p==="/api/clan/create"&&req.method==="POST"){if(D.cm[pid])return J(res,409,{error:"tem"});const n=cs(b.cn,16).trim();if(n.length<3)return J(res,400,{error:"nome"});
+        if(Object.values(D.clans).some(c=>c.n.toLowerCase()===n.toLowerCase()))return J(res,409,{error:"existe"});if(Object.keys(D.clans).length>5000)return J(res,429,{error:"muitas"});
+        const id=crypto.randomBytes(4).toString("hex");let code;do{code=String(100000+Math.floor(Math.random()*900000))}while(Object.values(D.clans).some(c=>c.code===code));D.clans[id]={n,e:cs(b.emoji,4)||"🐄",o:pid,code,m:{[pid]:{n:cleanName(b.name)}},t:now()};D.cm[pid]=id;return J(res,200,{clan:clanPub(id,pid)})}
+      if(p==="/api/clan/join"&&req.method==="POST"){const c=D.clans[b.id];if(!c)return J(res,404,{error:"nada"});if(Object.keys(c.m).length>=30)return J(res,409,{error:"cheia"});if(D.cm[pid]!==b.id){leaveClan(pid);c.m[pid]={n:cleanName(b.name)};D.cm[pid]=b.id}D.inv[pid]=(D.inv[pid]||[]).filter(i=>i.cid!==b.id);return J(res,200,{clan:clanPub(b.id,pid)})}
+      if(p==="/api/clan/leave"&&req.method==="POST"){leaveClan(pid);return J(res,200,{ok:1})}
+      if(p==="/api/friend/code"){return J(res,200,{code:fcode(pid)})}
+      if(p==="/api/friend/find"){const c=String(u.searchParams.get("code")||""),t=D.fcr[c];if(!t||t===pid)return J(res,404,{error:"nada"});const x=D.profiles[t]||D.players[t]||{};return J(res,200,{pid:t,name:x.n||"Fazenda"})}
+      if(p==="/api/clan/find"){const c=String(u.searchParams.get("code")||""),id=Object.keys(D.clans).find(k=>D.clans[k].code===c);if(!id)return J(res,404,{error:"nada"});const k=clanPub(id,pid);return J(res,200,{clan:{id:k.id,name:k.name,emoji:k.emoji,members:k.members,total:k.total}})}
+      if(p==="/api/clan/invite"&&req.method==="POST"){const cid=D.cm[pid],c=D.clans[cid],to=String(b.to||"");if(!c)return J(res,404,{error:"semclan"});if(!okPid(to)||to===pid||!(D.profiles[to]||D.players[to]))return J(res,404,{error:"alvo"});
+        const q=D.inv[to]=(D.inv[to]||[]).filter(i=>now()-i.t<7*864e5&&i.cid!==cid);q.push({id:crypto.randomBytes(5).toString("hex"),cid,cn:c.n,ce:c.e,fn:cleanName(b.name),t:now()});if(q.length>12)q.shift();return J(res,200,{ok:1})}
+      if(p==="/api/clan/invites"){const q=(D.inv[pid]||[]).filter(i=>now()-i.t<7*864e5&&D.clans[i.cid]);D.inv[pid]=q;return J(res,200,{invites:q.map(i=>({id:i.id,cid:i.cid,cn:i.cn,ce:i.ce,fn:i.fn}))})}
+      if(p==="/api/clan/decline"&&req.method==="POST"){D.inv[pid]=(D.inv[pid]||[]).filter(i=>i.id!==b.id);return J(res,200,{ok:1})}
+      if(p==="/api/gift/send"&&req.method==="POST"){const to=String(b.to||"");if(!okPid(to)||to===pid||!(D.profiles[to]||D.players[to]))return J(res,404,{error:"alvo"});
+        const l=D.giftlog[pid]=D.giftlog[pid]&&D.giftlog[pid].d===dayK()?D.giftlog[pid]:{d:dayK(),n:0,to:[]};if(l.n>=3||l.to.includes(to))return J(res,429,{error:"limite"});
+        l.n++;l.to.push(to);const q=D.gifts[to]=D.gifts[to]||[];if(q.length<30)q.push({id:crypto.randomBytes(5).toString("hex"),from:pid,fn:cleanName(b.name),k:Math.random()<.2?"tix":"coin",t:now()});return J(res,200,{ok:1})}
+      if(p==="/api/gift/inbox"){return J(res,200,{gifts:(D.gifts[pid]||[]).map(g=>({id:g.id,fn:g.fn,k:g.k}))})}
+      if(p==="/api/gift/claim"&&req.method==="POST"){const q=D.gifts[pid]||[],i=q.findIndex(g=>g.id===b.id);if(i<0)return J(res,404,{error:"nada"});const g=q.splice(i,1)[0];return J(res,200,{k:g.k})}
+      if(p==="/api/show/submit"&&req.method==="POST"){const wk=weekIdx(now()),w=D.show[wk]=D.show[wk]||{};if(!w[pid])w[pid]={n:cleanName(b.name),s:Math.max(0,Math.min(1e9,+b.score||0)),cow:{t:cs(b.cow&&b.cow.t,30),sh:b.cow&&b.cow.sh?1:0}};return J(res,200,{ok:1})}
+      if(p==="/api/show/top"){const wk=+u.searchParams.get("w"),w=D.show[wk]||{},all=Object.entries(w).map(([id,x])=>({id,n:x.n,s:x.s,cow:x.cow})).sort((a,c)=>c.s-a.s),i=all.findIndex(x=>x.id===pid);
+        return J(res,200,{w:wk,top:all.slice(0,10).map((x,k)=>({n:x.n,s:x.s,cow:x.cow,me:x.id===pid,rank:k+1})),rank:i<0?0:i+1,total:all.length})}
+      if(p==="/api/boss/add"&&req.method==="POST"){const wk=weekIdx(now());if(+b.w!==wk)return J(res,200,{ok:0});const B=D.boss[wk]=D.boss[wk]||{total:0,by:{}},l=Math.max(0,Math.min(300000,+b.l||0));B.total+=l;B.by[pid]=(B.by[pid]||0)+l;return J(res,200,{ok:1})}
+      if(p==="/api/boss"){const wk=weekIdx(now()),B=D.boss[wk]||{total:0,by:{}},act=Math.max(1,Object.values(D.players).filter(x=>x.w===wk).length);const ord=Object.entries(B.by).sort((a,c)=>c[1]-a[1]),nm=id=>(D.profiles[id]&&D.profiles[id].n)||(D.players[id]&&D.players[id].n)||"Fazenda",ri=ord.findIndex(x=>x[0]===pid);return J(res,200,{w:wk,total:Math.round(B.total),goal:Math.max(200000,act*120000),players:ord.length,mine:B.by[pid]||0,rank:ri<0?0:ri+1,top:ord.slice(0,5).map(([id,l],i)=>({n:nm(id),l:Math.round(l),me:id===pid,rank:i+1}))})}
       return J(res,404,{error:"rota"});
     }catch(e){console.error(e);J(res,500,{error:"erro"})}
   });
